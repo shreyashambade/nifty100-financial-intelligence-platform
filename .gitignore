@@ -1,0 +1,43 @@
+#environments
+.env
+
+#folders
+raw_work/
+sqlscripts
+prd
+
+#jupyter_notebook
+**/.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Database
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+
+# Build files
+dist/
+build/
+*.egg-info/

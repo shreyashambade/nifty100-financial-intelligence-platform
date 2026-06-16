@@ -1,0 +1,27 @@
+symbol,is_pro,category,text,source,confidence,generated_at
+HDFCBANK,True,,Company is expected to give good quarter,MANUAL,,2026-06-16 15:17:52.599251
+HDFCBANK,False,,Stock is trading at 2.76 times its book value,MANUAL,,2026-06-16 15:17:52.599251
+HDFCBANK,True,,Company has delivered good profit growth of 23.4% CAGR over last 5 years,MANUAL,,2026-06-16 15:17:52.599251
+HDFCBANK,False,,Company has low interest coverage ratio.,MANUAL,,2026-06-16 15:17:52.599251
+HDFCBANK,True,,Company has been maintaining a healthy dividend payout of 22.9%,MANUAL,,2026-06-16 15:17:52.599251
+HDFCBANK,False,,"Contingent liabilities of Rs.24,09,821 Cr.",MANUAL,,2026-06-16 15:17:52.599251
+HDFCBANK,True,,Company's median sales growth is 16.4% of last 10 years,MANUAL,,2026-06-16 15:17:52.599251
+HDFCBANK,False,,"Earnings include an other income of Rs.1,55,870 Cr.",MANUAL,,2026-06-16 15:17:52.599251
+SBILIFE,True,,Company is almost debt free.,MANUAL,,2026-06-16 15:17:52.599251
+SBILIFE,False,,Stock is trading at 9.11 times its book value,MANUAL,,2026-06-16 15:17:52.599251
+SBILIFE,True,,Company is expected to give good quarter,MANUAL,,2026-06-16 15:17:52.599251
+SBILIFE,False,,Tax rate seems low,MANUAL,,2026-06-16 15:17:52.599251
+SBILIFE,False,,Company has a low return on equity of 12.9% over last 3 years.,MANUAL,,2026-06-16 15:17:52.599251
+SBILIFE,False,,"Earnings include an other income of Rs.1,657 Cr.",MANUAL,,2026-06-16 15:17:52.599251
+SBILIFE,False,,Dividend payout has been low at 14.0% of profits over last 3 years,MANUAL,,2026-06-16 15:17:52.599251
+INFY,True,,Company has a good return on equity (ROE) track record: 3 Years ROE 30.9%,MANUAL,,2026-06-16 15:17:52.599251
+INFY,False,,Stock is trading at 9.03 times its book value,MANUAL,,2026-06-16 15:17:52.599251
+INFY,True,,Company has been maintaining a healthy dividend payout of 63.3%,MANUAL,,2026-06-16 15:17:52.599251
+INFY,False,,Promoter holding is low: 14.4%,MANUAL,,2026-06-16 15:17:52.599251
+WIPRO,False,,The company has delivered a poor sales growth of 8.75% over past five years.,MANUAL,,2026-06-16 15:17:52.599251
+WIPRO,False,,Dividend payout has been low at 12.2% of profits over last 3 years,MANUAL,,2026-06-16 15:17:52.599251
+TCS,True,,Company is almost debt free.,MANUAL,,2026-06-16 15:17:52.599251
+TCS,False,,Stock is trading at 15.2 times its book value,MANUAL,,2026-06-16 15:17:52.599251
+TCS,True,,Company has a good return on equity (ROE) track record: 3 Years ROE 47.4%,MANUAL,,2026-06-16 15:17:52.599251
+TCS,False,,The company has delivered a poor sales growth of 10.5% over past five years.,MANUAL,,2026-06-16 15:17:52.599251
+TCS,True,,Company has been maintaining a healthy dividend payout of 66.2%,MANUAL,,2026-06-16 15:17:52.599251

@@ -1,0 +1,18 @@
+# Data engineering and analytics 
+pandas>=2.0.0
+numpy>=1.24.0
+openpyxl>=3.1.0
+psycopg2-binary>=2.9.6
+scikit-learn>=1.2.0
+
+# jupyter Environment
+notebook
+matplotlib
+seaborn
+
+# Backend Freamework and Queue Architecture
+Django>=4.2.0,<5.0.0
+djangorestframework>=3.14.0
+celery>=5.3.0
+redis>=4.6.0
+drf-spectacular>=0.26.0
