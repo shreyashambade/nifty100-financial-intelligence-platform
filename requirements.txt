@@ -1,18 +1,35 @@
-# Data engineering and analytics 
-pandas>=2.0.0
-numpy>=1.24.0
-openpyxl>=3.1.0
-psycopg2-binary>=2.9.6
-scikit-learn>=1.2.0
+ #Data engineering and analytics 
 
-# jupyter Environment
+pandas>=2.2.0
+numpy>=1.26.0,<2.0.0
+openpyxl>=3.1.2
+psycopg2-binary>=2.9.9
+scikit-learn>=1.4.0
+scipy>=1.12.0
+statsmodels>=0.14.1
+xgboost>=2.0.3
+
+# Jupyter Environment (Constraints relaxed to fix ResolutionImpossible error)
+
 notebook
-matplotlib
-seaborn
+ipykernel
+jupyterlab
+matplotlib>=3.8.0
+seaborn>=0.13.0
 
-# Backend Freamework and Queue Architecture
-Django>=4.2.0,<5.0.0
-djangorestframework>=3.14.0
-celery>=5.3.0
-redis>=4.6.0
-drf-spectacular>=0.26.0
+
+
+# Backend Framework and Queue Architecture
+
+Django>=5.0.0
+djangorestframework>=3.15.0
+celery>=5.3.6
+redis>=5.0.0
+drf-spectacular>=0.27.0
+
+
+# API & Configuration Essentials 
+
+django-cors-headers>=4.3.0
+python-dotenv>=1.0.1
+ 
