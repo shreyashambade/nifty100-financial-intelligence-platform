@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    
+    <!-- Top Section: Company Profile -->
+    <div class="bg-white shadow-md rounded-lg p-8 mb-8 border border-slate-200">
+        <div class="flex justify-between items-start">
+            <div>
+                <div class="flex items-center gap-4 mb-2">
+                    <h1 class="text-4xl font-bold text-slate-900">{{ company.company_name }}</h1>
+                    <span class="px-3 py-1 text-lg font-bold rounded-full bg-blue-100 text-blue-800">{{ company.symbol }}</span>
+                </div>
+                <p class="text-lg text-slate-600 font-medium">{{ company.sector }}</p>
+                <div class="mt-4 space-x-4">
+                    <a href="{{ company.website }}" target="_blank" class="text-blue-600 hover:underline">Official Website</a>
+                </div>
+            </div>
+            
+            <!-- Placeholder for Health Score Gauge -->
+            <div class="text-center p-4 bg-slate-50 rounded-lg border border-slate-200 min-w-[150px]">
+                <p class="text-sm font-semibold text-slate-500 uppercase">Health Score</p>
+                <p class="text-3xl font-extrabold text-green-600 mt-1">85/100</p>
+                <p class="text-xs font-bold text-green-800 mt-1 bg-green-200 rounded-full px-2 py-1">EXCELLENT</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Section: Chart.js Analytics (PRD Requirement) -->
+    <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b pb-2">Financial Analytics</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- 1. Revenue Chart -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+            <h3 class="font-bold text-slate-700 mb-4 text-center">Revenue & Profit Trend</h3>
+            <div class="relative h-72 w-full"><canvas id="revenueChart"></canvas></div>
+        </div>
+
+        <!-- 2. EPS Trend -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+            <h3 class="font-bold text-slate-700 mb-4 text-center">Earnings Per Share (EPS)</h3>
+            <div class="relative h-72 w-full"><canvas id="epsChart"></canvas></div>
+        </div>
+
+        <!-- 3. Debt to Equity -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+            <h3 class="font-bold text-slate-700 mb-4 text-center">Debt to Equity Ratio</h3>
+            <div class="relative h-72 w-full"><canvas id="debtChart"></canvas></div>
+        </div>
+
+        <!-- 4. Operating Cash Flow -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+            <h3 class="font-bold text-slate-700 mb-4 text-center">Operating Cash Flow</h3>
+            <div class="relative h-72 w-full"><canvas id="cashChart"></canvas></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Initialize Chart.js -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const symbol = "{{ company.symbol }}";
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        
+        // Fetch real data from your PostgreSQL Data Warehouse via Django
+        fetch(`/api/v1/companies/${symbol}/charts/`)
+            .then(response => response.json())
+            .then(data => {
+                // Update the chart title dynamically
+                document.querySelector('h3.font-bold').innerText = "Revenue & Profit Trend";
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels, // Real Years (e.g., Mar 2023, Mar 2024)
+                        datasets: [
+                            {
+                                label: 'OPM %',
+                                data: data.opm, // Real OPM percentages
+                                type: 'line',
+                                borderColor: 'rgba(239, 68, 68, 1)', // Red line
+                                backgroundColor: 'rgba(239, 68, 68, 1)',
+                                borderWidth: 2,
+                                tension: 0.3,
+                                yAxisID: 'y1' // Use secondary Y-axis
+                            },
+                            {
+                                label: 'Revenue (₹ Cr)',
+                                data: data.revenue, // Real Sales
+                                backgroundColor: 'rgba(37, 99, 235, 0.8)', // Blue bar
+                                borderRadius: 4,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Net Profit (₹ Cr)',
+                                data: data.net_profit, // Real Profit
+                                backgroundColor: 'rgba(16, 185, 129, 0.8)', // Green bar
+                                borderRadius: 4,
+                                yAxisID: 'y'
+                            }
+                        ]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: { display: true, text: '₹ Crores' }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: { display: true, text: 'Percentage (%)' },
+                                grid: { drawOnChartArea: false } // Prevent gridline overlap
+                            }
+                        }
+                    }
+                });
+
+                // 2. EPS Chart (Line)
+                new Chart(document.getElementById('epsChart').getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'EPS (₹)',
+                            data: data.eps,
+                            borderColor: 'rgba(139, 92, 246, 1)', // Purple line
+                            backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // 3. Debt to Equity (Bar)
+                new Chart(document.getElementById('debtChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'D/E Ratio',
+                            data: data.debt_to_equity,
+                            backgroundColor: 'rgba(245, 158, 11, 0.8)' // Amber bar
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // 4. Operating Cash Flow (Bar)
+                new Chart(document.getElementById('cashChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Operating Cash Flow (₹ Cr)',
+                            data: data.operating_cash,
+                            backgroundColor: 'rgba(14, 165, 233, 0.8)' // Light blue bar
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            })
+            .catch(error => console.error("Error fetching chart data:", error));
+    });
+</script>
+{% endblock %}

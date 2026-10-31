@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- 1. Hero Section with Search -->
+<div class="bg-slate-800 text-white py-24 px-4 text-center">
+    <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Nifty 100 Financial Intelligence</h1>
+    <p class="text-xl mb-10 text-slate-300">Commercial-grade insights for India's top market cap companies.</p>
+    <div class="max-w-3xl mx-auto">
+        <input type="text" placeholder="Search by company name or symbol (e.g., RELIANCE, TCS)..." 
+               class="w-full px-6 py-4 rounded-full text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500 shadow-xl text-lg transition">
+    </div>
+</div>
+
+<!-- 2. Live Insights Ticker -->
+<div class="bg-blue-50 border-b border-blue-100 py-3 overflow-hidden">
+    <div class="whitespace-nowrap text-blue-800 text-sm font-semibold text-center animate-pulse">
+        ⚡ LIVE INSIGHTS: ML Engine flagged 3 anomalies • IT Sector showing strong ROE recovery • Banking OPM% steady
+    </div>
+</div>
+
+<!-- 3. Sector Overview Grid -->
+<div class="max-w-7xl mx-auto px-4 py-16">
+    <h2 class="text-2xl font-bold mb-8 text-slate-800 border-b pb-2">Sector Overview</h2>
+    
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <!-- We will populate these dynamically later, using static placeholders for layout design -->
+        <a href="/sector/Financial-Services" class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer border border-slate-200">
+            <h3 class="font-bold text-lg text-slate-900">Financial Services</h3>
+            <p class="text-sm text-slate-500 mt-2">View Sector Details &rarr;</p>
+        </a>
+        <a href="/sector/Information-Technology" class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer border border-slate-200">
+            <h3 class="font-bold text-lg text-slate-900">Information Technology</h3>
+            <p class="text-sm text-slate-500 mt-2">View Sector Details &rarr;</p>
+        </a>
+        <a href="/sector/Healthcare" class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer border border-slate-200">
+            <h3 class="font-bold text-lg text-slate-900">Healthcare</h3>
+            <p class="text-sm text-slate-500 mt-2">View Sector Details &rarr;</p>
+        </a>
+        <a href="/sector/Automobile" class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer border border-slate-200">
+            <h3 class="font-bold text-lg text-slate-900">Automobile</h3>
+            <p class="text-sm text-slate-500 mt-2">View Sector Details &rarr;</p>
+        </a>
+    </div>
+</div>
+{% endblock %}
