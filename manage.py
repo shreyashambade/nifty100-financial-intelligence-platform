@@ -6,6 +6,12 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    # Ensure webapp directory is on sys.path so nifty_core and api can be imported
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    webapp_dir = os.path.join(base_dir, 'webapp')
+    if os.path.exists(webapp_dir) and webapp_dir not in sys.path:
+        sys.path.insert(0, webapp_dir)
+
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'nifty_core.settings')
     try:
         from django.core.management import execute_from_command_line

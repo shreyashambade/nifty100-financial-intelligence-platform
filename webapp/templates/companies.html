@@ -1,53 +1,371 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
     
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-slate-900">Nifty 100 Companies</h1>
-        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow transition">
-            Export CSV
-        </button>
+    <!-- Page Header & Export Action -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight transition-colors">
+                Nifty 100 Constituents
+            </h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Comprehensive fundamentals, algorithmic health scores, and valuation ratios for India's top 100 enterprise leaders.
+            </p>
+        </div>
+        <a href="{% url 'export_companies_csv' %}" download="nifty100_companies.csv"
+           class="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 rounded-xl shadow-xs transition focus:outline-none focus:ring-2 focus:ring-blue-500 shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            <span>Export CSV</span>
+        </a>
     </div>
 
-    <!-- Company Table -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden border border-slate-200">
-        <table class="min-w-full divide-y divide-slate-200">
-            <thead class="bg-slate-50">
-                <tr>
-                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Symbol</th>
-                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Company Name</th>
-                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Sector</th>
-                    <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-slate-200">
-                {% for company in companies %}
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-3 py-1 inline-flex text-sm leading-5 font-bold rounded-full bg-blue-100 text-blue-800">
-                            {{ company.symbol }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                        {{ company.company_name }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                        {{ company.sector }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="{% url 'company_detail' company.symbol %}" class="text-blue-600 hover:text-blue-900">View Details &rarr;</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="px-6 py-10 text-center text-slate-500">
-                        No companies found in the data warehouse.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Top-Level Corporate Directory Controls Bar (Search Bar + Sector Chips & Dropdown) -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xs border border-slate-200 dark:border-slate-800 p-4 sm:p-6 mb-6 transition-colors">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <!-- Search Bar with Live Autocomplete -->
+            <div class="relative flex-1 max-w-lg">
+                <div class="pointer-events-none absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 dark:text-slate-500">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+                <input type="text" id="companyTableSearch" autocomplete="off" placeholder="Search by ticker symbol or company name..."
+                       class="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs transition">
+                <!-- Autocomplete Dropdown with Left Ticker Symbol Badge -->
+                <ul id="companyTableAutocomplete" 
+                    class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700">
+                </ul>
+            </div>
+
+            <!-- Filters & Reset -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Sector Dropdown -->
+                <div class="w-full sm:w-auto">
+                    <select id="sectorFilter" aria-label="Filter by Sector" class="w-full sm:w-48 px-3.5 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition font-medium">
+                        <option value="">All Sectors</option>
+                        {% for s in sectors %}
+                        <option value="{{ s }}">{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Health Status Dropdown -->
+                <div class="w-full sm:w-auto">
+                    <select id="labelFilter" aria-label="Filter by Health Status" class="w-full sm:w-44 px-3.5 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition font-medium">
+                        <option value="">All Statuses</option>
+                        {% for l in health_labels %}
+                        <option value="{{ l }}">{{ l }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Reset Button -->
+                <button type="button" id="resetTableFiltersBtn" class="px-3.5 py-2.5 text-sm font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
+                    Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Sector Filter Chips -->
+        <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 overflow-x-auto custom-scrollbar py-1">
+            <span class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider shrink-0 mr-1">Quick Sectors:</span>
+            <button type="button" class="sector-chip active px-3 py-1 rounded-full text-xs font-semibold bg-blue-600 text-white shadow-xs transition shrink-0" data-sector="">All</button>
+            {% for s in sectors %}
+            <button type="button" class="sector-chip px-3 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-700 dark:hover:text-blue-400 transition shrink-0" data-sector="{{ s }}">{{ s }}</button>
+            {% endfor %}
+        </div>
     </div>
+
+    <!-- Results Header / Counter -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
+        <span id="companyCountStatus" class="text-sm font-semibold text-slate-600 dark:text-slate-400">
+            Showing all {{ companies|length }} constituents
+        </span>
+    </div>
+
+    <!-- Full-Width Company Directory Table with Responsive Horizontal Scroll Container -->
+    <div class="bg-white dark:bg-slate-900 shadow-2xs rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="overflow-x-auto w-full custom-scrollbar" style="-webkit-overflow-scrolling: touch;">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800" id="companiesTable">
+                <thead class="bg-slate-50 dark:bg-slate-800/60 transition-colors text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                    <tr>
+                        <th scope="col" class="px-6 py-4 text-left">Symbol</th>
+                        <th scope="col" class="px-6 py-4 text-left">Company Name</th>
+                        <th scope="col" class="px-6 py-4 text-left">Sector</th>
+                        <th scope="col" class="px-6 py-4 text-center">Health Score</th>
+                        <th scope="col" class="px-6 py-4 text-right">OPM (%)</th>
+                        <th scope="col" class="px-6 py-4 text-right">Debt / Equity</th>
+                        <th scope="col" class="px-6 py-4 text-right">3Y Sales Growth</th>
+                        <th scope="col" class="px-6 py-4 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800 text-sm transition-colors" id="companiesTableBody">
+                    {% for company in companies %}
+                    <tr class="company-row hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition"
+                        data-symbol="{{ company.symbol|upper }}"
+                        data-name="{{ company.company_name|lower }}"
+                        data-sector="{{ company.sector }}"
+                        data-label="{{ company.health_label }}">
+                        
+                        <!-- Symbol -->
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2.5 py-1 inline-flex font-mono text-xs font-bold rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+                                {{ company.symbol }}
+                            </span>
+                        </td>
+
+                        <!-- Company Name -->
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-900 dark:text-slate-100">
+                            {{ company.company_name }}
+                        </td>
+
+                        <!-- Sector -->
+                        <td class="px-6 py-4 whitespace-nowrap text-xs text-slate-600 dark:text-slate-400">
+                            {{ company.sector }}
+                        </td>
+
+                        <!-- Health Score Badge (Color-Coded) -->
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            {% if company.health_score is not None %}
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider {% if company.health_score >= 85 %}bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60{% elif company.health_score >= 70 %}bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60{% elif company.health_score >= 50 %}bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60{% else %}bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/60{% endif %}">
+                                <span>{{ company.health_score|floatformat:1 }}</span>
+                                <span class="text-[10px] font-medium opacity-80">• {{ company.health_label }}</span>
+                            </div>
+                            {% else %}
+                            <span class="text-xs text-slate-400">N/A</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- OPM (%) -->
+                        <td class="px-6 py-4 whitespace-nowrap text-right font-medium text-slate-800 dark:text-slate-200">
+                            {% if company.opm_pct is not None %}
+                            {{ company.opm_pct|floatformat:2 }}%
+                            {% else %}
+                            <span class="text-slate-400">N/A</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Debt to Equity -->
+                        <td class="px-6 py-4 whitespace-nowrap text-right font-medium text-slate-800 dark:text-slate-200">
+                            {% if company.debt_to_equity is not None %}
+                            {{ company.debt_to_equity|floatformat:2 }}
+                            {% else %}
+                            <span class="text-slate-400">N/A</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- 3Y Sales Growth -->
+                        <td class="px-6 py-4 whitespace-nowrap text-right font-semibold">
+                            {% if company.sales_growth_3y is not None %}
+                                <span class="{% if company.sales_growth_3y > 0 %}text-emerald-600 dark:text-emerald-400{% elif company.sales_growth_3y < 0 %}text-rose-600 dark:text-rose-400{% else %}text-slate-600 dark:text-slate-400{% endif %}">
+                                    {% if company.sales_growth_3y > 0 %}+{% endif %}{{ company.sales_growth_3y|floatformat:2 }}%
+                                </span>
+                            {% else %}
+                                <span class="text-slate-400">N/A</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Action Link -->
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                            <a href="{% url 'company_detail' company.symbol %}" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold transition-colors">
+                                View &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+                            No companies found in the data warehouse.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
+
+<!-- Client-Side Instant Filtering & Autocomplete Script -->
+<script>
+(function() {
+    const searchInput = document.getElementById('companyTableSearch');
+    const sectorFilter = document.getElementById('sectorFilter');
+    const labelFilter = document.getElementById('labelFilter');
+    const resetBtn = document.getElementById('resetTableFiltersBtn');
+    const countStatus = document.getElementById('companyCountStatus');
+    const dropdown = document.getElementById('companyTableAutocomplete');
+    const chips = Array.from(document.querySelectorAll('.sector-chip'));
+    const rows = Array.from(document.querySelectorAll('.company-row'));
+
+    let debounceTimer = null;
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function clearDropdown() {
+        if (!dropdown) return;
+        dropdown.innerHTML = '';
+        dropdown.classList.add('hidden');
+    }
+
+    function renderDropdown(companies) {
+        if (!dropdown) return;
+        dropdown.innerHTML = '';
+
+        if (!Array.isArray(companies) || companies.length === 0) {
+            dropdown.classList.add('hidden');
+            return;
+        }
+
+        companies.forEach(company => {
+            const li = document.createElement('li');
+            li.className = 'autocomplete-item px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-blue-400 cursor-pointer transition select-none flex items-center space-x-3';
+            li.setAttribute('data-symbol', company.symbol);
+
+            const companyName = company.company_name || company.name || company.symbol;
+            const symbol = escapeHtml(company.symbol);
+
+            li.innerHTML = `
+                <span class="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-xs font-mono font-bold text-blue-700 dark:text-blue-300 transition shrink-0">
+                    ${symbol}
+                </span>
+                <span class="font-medium truncate text-slate-800 dark:text-slate-200">
+                    ${escapeHtml(companyName)}
+                </span>
+            `;
+
+            li.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (searchInput) {
+                    searchInput.value = company.symbol;
+                    applyTableFilter();
+                }
+                clearDropdown();
+            });
+
+            dropdown.appendChild(li);
+        });
+
+        dropdown.classList.remove('hidden');
+    }
+
+    async function fetchAutocomplete(query) {
+        try {
+            const response = await fetch(`/api/v1/companies/search/?q=${encodeURIComponent(query)}`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            renderDropdown(data);
+        } catch (error) {
+            console.error('Error fetching autocomplete:', error);
+            clearDropdown();
+        }
+    }
+
+    function syncChips(selectedSector) {
+        chips.forEach(chip => {
+            const chipSector = chip.getAttribute('data-sector') || '';
+            if (chipSector === selectedSector) {
+                chip.classList.add('active', 'bg-blue-600', 'text-white', 'shadow-xs');
+                chip.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+            } else {
+                chip.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow-xs');
+                chip.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+            }
+        });
+    }
+
+    function applyTableFilter() {
+        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+        const selectedSector = (sectorFilter ? sectorFilter.value : '').trim();
+        const selectedLabel = (labelFilter ? labelFilter.value : '').trim();
+
+        syncChips(selectedSector);
+
+        let visibleCount = 0;
+        rows.forEach(row => {
+            const sym = (row.getAttribute('data-symbol') || '').toLowerCase();
+            const name = (row.getAttribute('data-name') || '').toLowerCase();
+            const sector = (row.getAttribute('data-sector') || '').trim();
+            const label = (row.getAttribute('data-label') || '').trim();
+
+            const matchesQuery = !query || sym.includes(query) || name.includes(query);
+            const matchesSector = !selectedSector || sector === selectedSector;
+            const matchesLabel = !selectedLabel || label === selectedLabel;
+
+            if (matchesQuery && matchesSector && matchesLabel) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (countStatus) {
+            countStatus.textContent = `Showing ${visibleCount} of ${rows.length} constituents`;
+        }
+    }
+
+    // Chip click handlers
+    chips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            const sector = this.getAttribute('data-sector') || '';
+            if (sectorFilter) {
+                sectorFilter.value = sector;
+            }
+            applyTableFilter();
+        });
+    });
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            if (searchInput) searchInput.value = '';
+            if (sectorFilter) sectorFilter.value = '';
+            if (labelFilter) labelFilter.value = '';
+            clearDropdown();
+            applyTableFilter();
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            applyTableFilter();
+            const query = this.value.trim();
+            clearTimeout(debounceTimer);
+            if (!query) {
+                clearDropdown();
+                return;
+            }
+            debounceTimer = setTimeout(() => {
+                fetchAutocomplete(query);
+            }, 300);
+        });
+
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                clearDropdown();
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (dropdown && !dropdown.contains(e.target) && searchInput && !searchInput.contains(e.target)) {
+            clearDropdown();
+        }
+    });
+
+    if (sectorFilter) sectorFilter.addEventListener('change', applyTableFilter);
+    if (labelFilter) labelFilter.addEventListener('change', applyTableFilter);
+})();
+</script>
 {% endblock %}

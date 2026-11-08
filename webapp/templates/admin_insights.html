@@ -1,0 +1,444 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Dashboard Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+        <div>
+            <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white">Admin Insights & Platform Telemetry</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Real-time operational metrics across API consumption, webhook deliverability, warehouse quality, and ML scoring stability.
+            </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="/admin/" target="_blank"
+               class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Django Admin
+            </a>
+            <a href="/api/docs/" target="_blank"
+               class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Swagger UI
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 KPI Overview Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <!-- Card 1: API Usage -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">API Usage</span>
+                <span class="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </span>
+            </div>
+            <div class="mt-4">
+                <p class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ api_usage.total_calls }}</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                    <span class="font-semibold text-slate-700 dark:text-slate-300">Avg Latency:</span> {{ api_usage.avg_response_ms }} ms
+                </p>
+            </div>
+        </div>
+
+        <!-- Card 2: Webhook Health -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Webhook Health</span>
+                <span class="p-2 rounded-lg {% if webhook_health.failed_count > 0 %}bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400{% else %}bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                </span>
+            </div>
+            <div class="mt-4">
+                <p class="text-3xl font-extrabold {% if webhook_health.failed_count > 0 %}text-rose-600 dark:text-rose-400{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                    {{ webhook_health.failed_count }}
+                </p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Failed deliveries ({{ webhook_health.success_rate }}% success rate across {{ webhook_health.total_count }})
+                </p>
+            </div>
+        </div>
+
+        <!-- Card 3: Data Quality Gaps -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Data Quality Gaps</span>
+                <span class="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                    </svg>
+                </span>
+            </div>
+            <div class="mt-4">
+                <p class="text-3xl font-extrabold {% if data_quality.gaps_count > 0 %}text-amber-600 dark:text-amber-400{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                    {{ data_quality.gaps_count }}
+                </p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Companies missing {{ data_quality.current_year_label }} (of {{ data_quality.total_companies }})
+                </p>
+            </div>
+        </div>
+
+        <!-- Card 4: ML Anomalies -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">ML Anomalies</span>
+                <span class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </span>
+            </div>
+            <div class="mt-4">
+                <p class="text-3xl font-extrabold {% if ml_anomalies.count > 0 %}text-purple-600 dark:text-purple-400{% else %}text-slate-900 dark:text-white{% endif %}">
+                    {{ ml_anomalies.count }}
+                </p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Health score shifts &ge; 2.0 pts
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 2x2 Grid for Detailed Breakdowns -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- Panel 1: Top 5 API Endpoints -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+            <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-white">Top 5 API Endpoints</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Ranked by total historical request volume</p>
+                </div>
+                <span class="text-xs font-medium px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    Live Telemetry
+                </span>
+            </div>
+            <div class="p-0 overflow-x-auto flex-grow">
+                {% if api_usage.top_endpoints %}
+                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left">Method</th>
+                            <th scope="col" class="px-4 py-3 text-left">Endpoint</th>
+                            <th scope="col" class="px-4 py-3 text-right">Calls</th>
+                            <th scope="col" class="px-4 py-3 text-right">Avg Latency</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-mono text-xs">
+                        {% for ep in api_usage.top_endpoints %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="px-2 py-0.5 rounded font-bold text-[10px] 
+                                    {% if ep.method == 'GET' %}bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300
+                                    {% elif ep.method == 'POST' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300
+                                    {% elif ep.method == 'DELETE' %}bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300
+                                    {% else %}bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+                                    {{ ep.method }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap font-semibold text-slate-900 dark:text-white font-sans text-xs">
+                                {{ ep.endpoint }}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-right font-sans font-bold">
+                                {{ ep.call_count }}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-right text-slate-500 dark:text-slate-400">
+                                {{ ep.avg_latency }} ms
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                    No API request logs recorded yet. Calls to the Partner API will be logged asynchronously here.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Panel 2: Recently Failed Webhooks -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+            <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-white">Recently Failed Webhook Events</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Delivery attempts exceeding retry thresholds</p>
+                </div>
+                <span class="text-xs font-medium px-2 py-1 rounded bg-rose-50 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400">
+                    {{ webhook_health.failed_count }} Failed
+                </span>
+            </div>
+            <div class="p-0 overflow-x-auto flex-grow">
+                {% if webhook_health.recent_failed_events %}
+                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left">Partner</th>
+                            <th scope="col" class="px-4 py-3 text-left">Target URL</th>
+                            <th scope="col" class="px-4 py-3 text-center">Status</th>
+                            <th scope="col" class="px-4 py-3 text-center">Retries</th>
+                            <th scope="col" class="px-4 py-3 text-left">Response Body</th>
+                            <th scope="col" class="px-4 py-3 text-left">Last Error</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 text-xs">
+                        {% for event in webhook_health.recent_failed_events %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                            <td class="px-4 py-3 whitespace-nowrap font-semibold text-slate-900 dark:text-white">
+                                <div class="flex items-center gap-1.5">
+                                    <span>{{ event.subscription.partner.name|default:"Partner" }}</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold
+                                        {% if event.subscription.partner.tier == 'ENTERPRISE' %}bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300
+                                        {% elif event.subscription.partner.tier == 'PRO' %}bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300
+                                        {% else %}bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+                                        {{ event.subscription.partner.tier|default:"BASIC" }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap font-mono text-[11px] text-slate-600 dark:text-slate-400 max-w-xs truncate" title="{{ event.subscription.target_url }}">
+                                {{ event.subscription.target_url }}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-center">
+                                <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold
+                                    {% if event.status_code >= 500 %}bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300
+                                    {% elif event.status_code >= 400 %}bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300
+                                    {% else %}bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+                                    {{ event.status_code|default:"500" }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-center">
+                                <span class="px-1.5 py-0.5 rounded text-[11px] bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300 font-bold">
+                                    {{ event.retry_count }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-slate-600 dark:text-slate-400 font-mono text-[11px] max-w-xs truncate" title="{{ event.response_body|default:event.last_error }}">
+                                {{ event.response_body|default:event.last_error|truncatechars:35 }}
+                            </td>
+                            <td class="px-4 py-3 text-rose-600 dark:text-rose-400 font-mono text-[11px] max-w-xs truncate" title="{{ event.last_error }}">
+                                {{ event.last_error|default:"Connection timed out" }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="p-8 text-center text-sm text-emerald-600 dark:text-emerald-400 flex flex-col items-center justify-center gap-2">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>All partner webhook deliveries are currently operational and healthy!</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Panel 3: Data Quality Gaps -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+            <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-white">Data Quality Gaps ({{ data_quality.current_year_label }})</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Nifty 100 constituents missing primary financial statements</p>
+                </div>
+                <span class="text-xs font-medium px-2 py-1 rounded bg-amber-50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400">
+                    {{ data_quality.gaps_count }} Incomplete
+                </span>
+            </div>
+            <div class="p-0 overflow-x-auto flex-grow">
+                {% if data_quality.companies_with_gaps %}
+                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left">Symbol</th>
+                            <th scope="col" class="px-4 py-3 text-left">Company Name</th>
+                            <th scope="col" class="px-4 py-3 text-left">Sector</th>
+                            <th scope="col" class="px-4 py-3 text-right">Missing Statements</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 text-xs">
+                        {% for gap in data_quality.companies_with_gaps %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                            <td class="px-4 py-3 whitespace-nowrap font-bold text-blue-600 dark:text-blue-400">
+                                <a href="/company/{{ gap.symbol }}/" class="hover:underline">{{ gap.symbol }}</a>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap font-medium text-slate-900 dark:text-white">
+                                {{ gap.company_name }}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-slate-500 dark:text-slate-400">
+                                {{ gap.sector|default:"N/A" }}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-right space-x-1">
+                                {% if gap.missing_pl %}
+                                <span class="px-1.5 py-0.5 rounded text-[10px] bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300 font-semibold">
+                                    P&L
+                                </span>
+                                {% endif %}
+                                {% if gap.missing_bs %}
+                                <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300 font-semibold">
+                                    Balance Sheet
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="p-8 text-center text-sm text-emerald-600 dark:text-emerald-400 flex flex-col items-center justify-center gap-2">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>100% Data Completeness: All Nifty 100 companies have current-period records!</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Panel 4: ML Health Score Shifts & Anomalies -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+            <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-white">ML Health Score Shifts</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Significant score shifts (&ge; 2.0 pts) detected between runs</p>
+                </div>
+                <span class="text-xs font-medium px-2 py-1 rounded bg-purple-50 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400">
+                    {{ ml_anomalies.count }} Shifted
+                </span>
+            </div>
+            <div class="p-0 overflow-x-auto flex-grow">
+                {% if ml_anomalies.recent_shifts %}
+                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left">Symbol</th>
+                            <th scope="col" class="px-4 py-3 text-center">Previous</th>
+                            <th scope="col" class="px-4 py-3 text-center">Current</th>
+                            <th scope="col" class="px-4 py-3 text-center">Delta</th>
+                            <th scope="col" class="px-4 py-3 text-right">Health Label</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 text-xs">
+                        {% for shift in ml_anomalies.recent_shifts %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                            <td class="px-4 py-3 whitespace-nowrap font-bold text-blue-600 dark:text-blue-400">
+                                <a href="/company/{{ shift.symbol }}/" class="hover:underline">{{ shift.symbol }}</a>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-center text-slate-500 dark:text-slate-400">
+                                {{ shift.previous_score|floatformat:1 }}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-center font-bold text-slate-900 dark:text-white">
+                                {{ shift.current_score|floatformat:1 }}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-center">
+                                <span class="px-2 py-0.5 rounded font-bold text-[11px] 
+                                    {% if shift.diff < 0 %}bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300
+                                    {% else %}bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300{% endif %}">
+                                    {% if shift.diff > 0 %}+{% endif %}{{ shift.diff|floatformat:1 }} pts
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-right font-semibold">
+                                <span class="text-[11px] 
+                                    {% if shift.health_label == 'EXCELLENT' %}text-emerald-600 dark:text-emerald-400
+                                    {% elif shift.health_label == 'GOOD' %}text-blue-600 dark:text-blue-400
+                                    {% elif shift.health_label == 'AVERAGE' %}text-amber-600 dark:text-amber-400
+                                    {% else %}text-rose-600 dark:text-rose-400{% endif %}">
+                                    {{ shift.health_label|default:"GOOD" }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="p-8 text-center text-sm text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center gap-2">
+                    <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                    <span>No significant health score shifts or anomalies detected across recent scoring engine runs.</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Panel 5: API Management (Registered Channel Partners) -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div>
+                <h3 class="font-bold text-base text-slate-900 dark:text-white">API Management: Channel Partners</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Registered partner accounts, subscription tiers, and authentication status</p>
+            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                {{ channel_partners|length }} Partners
+            </span>
+        </div>
+        <div class="p-0 overflow-x-auto">
+            {% if channel_partners %}
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold">
+                    <tr>
+                        <th scope="col" class="px-4 py-3 text-left">Partner Name</th>
+                        <th scope="col" class="px-4 py-3 text-left">Email</th>
+                        <th scope="col" class="px-4 py-3 text-center">Tier</th>
+                        <th scope="col" class="px-4 py-3 text-left">API Key ID</th>
+                        <th scope="col" class="px-4 py-3 text-center">Status</th>
+                        <th scope="col" class="px-4 py-3 text-right">Created</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 text-xs">
+                    {% for partner in channel_partners %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                        <td class="px-4 py-3 whitespace-nowrap font-bold text-slate-900 dark:text-white">
+                            {{ partner.name }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-slate-500 dark:text-slate-400">
+                            {{ partner.email }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-center">
+                            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold
+                                {% if partner.tier == 'ENTERPRISE' %}bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300
+                                {% elif partner.tier == 'PRO' %}bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300
+                                {% else %}bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+                                {{ partner.tier|default:"BASIC" }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap font-mono text-[11px] text-slate-600 dark:text-slate-400">
+                            {{ partner.api_key|truncatechars:20 }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-center">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if partner.is_active %}bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300{% else %}bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400{% endif %}">
+                                {% if partner.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-right text-slate-500 dark:text-slate-400">
+                            {{ partner.created_at|date:"M d, Y" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                No channel partners provisioned yet. Create a partner via Django Admin or management command to view tier allocations.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

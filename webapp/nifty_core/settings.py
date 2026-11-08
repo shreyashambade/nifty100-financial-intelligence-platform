@@ -57,12 +57,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'api.middleware.PartnerAPILoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'nifty_core.urls'
@@ -88,6 +90,11 @@ WSGI_APPLICATION = 'nifty_core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -98,6 +105,18 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
+
+# Production database configuration via DATABASE_URL environment variable
+if dj_database_url and os.getenv('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=os.getenv('DATABASE_SSL_REQUIRE', 'false').lower() in ('1', 'true'),
+    )
+elif dj_database_url:
+    env_db = dj_database_url.config(conn_max_age=600)
+    if env_db:
+        DATABASES['default'] = env_db
 
 
 # Password validation
@@ -135,6 +154,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Email
@@ -149,8 +170,8 @@ MAILERS = {
 
 
 # Celery Configuration Options
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://127.0.0.1:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://127.0.0.1:6379/0')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -161,22 +182,85 @@ CELERY_TIMEZONE = 'Asia/Kolkata' # Aligned with IST
 # REST Framework & Swagger Documentation Settings
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'api.authentication.PartnerHMACAuthentication',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'api.throttling.PartnerTierRateThrottle',
+    ],
+    'EXCEPTION_HANDLER': 'api.throttling.partner_api_exception_handler',
+    'DEFAULT_THROTTLE_RATES': {
+        'partner_api': '100/minute',
+    },
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Bluestock Nifty 100 Channel Partner API',
-    'DESCRIPTION': 'Commercial REST API for structured financial data integration.',
+    'TITLE': 'Nifty 100 Intelligence API',
+    'DESCRIPTION': (
+        'Enterprise financial intelligence platform providing structured fundamental data, '
+        'automated ML health scores, valuation ratios, and deep analytics for the Nifty 100 universe.\n\n'
+        '### HMAC-SHA256 Authentication\n'
+        'All commercial partner endpoints are secured with canonical HMAC-SHA256 request signing.\n'
+        'Every request requires four mandatory headers:\n'
+        '- **X-API-Key-ID**: Partner public API key (UUID)\n'
+        '- **X-Timestamp**: Current Unix epoch timestamp in seconds (must be within 300s window)\n'
+        '- **X-Nonce**: Cryptographically unique request identifier matching `[A-Za-z0-9_-]{16,64}`\n'
+        '- **X-Signature**: Hexadecimal HMAC-SHA256 hash of the canonical request string '
+        '(`METHOD\\nPATH?QUERY\\nTIMESTAMP\\nNONCE\\nBODY_HASH`) signed using the partner secret key\n\n'
+        '### Tier-Based Rate Limits (Redis)\n'
+        '- **BASIC**: 10/min, 100/hr, 500/day\n'
+        '- **PRO**: 60/min, 1,000/hr, 10,000/day\n'
+        '- **ENTERPRISE**: 300/min, 10,000/hr, no daily cap'
+    ),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    'SERVE_AUTHENTICATION': [],
+    'COMPONENT_SPLIT_REQUEST': True,
+    # Explicitly whitelist only Partner HMAC Authentication to eliminate default basic/session auth
+    'AUTHENTICATION_WHITELIST': [
+        'api.authentication.PartnerHMACAuthentication',
+        'api.authentication.HMACAuthentication',
+    ],
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'ApiKeyAuth': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'X-API-Key-ID',
+                'description': (
+                    'Channel Partner HMAC-SHA256 Authentication.\n'
+                    'Provide your partner public API key in the X-API-Key-ID header.\n'
+                    'Mandatory headers: `X-API-Key-ID`, `X-Timestamp`, `X-Nonce`, `X-Signature`.'
+                ),
+            },
+        },
+    },
+    'SECURITY': [
+        {'ApiKeyAuth': []},
+    ],
 }
 
-# Redis Cache Settings
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+# Cache Settings (LocMemCache for automated testing and local fallback, Redis in production)
+import sys
+
+if 'test' in sys.argv:
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "niftyiq-test-cache",
         }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": os.getenv("CACHE_BACKEND", "django_redis.cache.RedisCache"),
+            "LOCATION": os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1"),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True,
+            }
+        }
+    }

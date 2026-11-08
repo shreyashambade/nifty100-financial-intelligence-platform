@@ -1,114 +1,244 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
     
-    <!-- Sector Header -->
-    <div class="mb-8">
-        <h1 class="text-4xl font-bold text-slate-900 mb-2">{{ sector_name }}</h1>
-        <p class="text-lg text-slate-600">Sector Performance and Constituent Analytics</p>
+    <!-- Breadcrumb Navigation -->
+    <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-4 transition-colors">
+        <a href="{% url 'home' %}" class="hover:text-blue-600 dark:hover:text-blue-400">Home</a>
+        <span>/</span>
+        <span class="text-slate-700 dark:text-slate-300 font-medium">Sectors</span>
+        <span>/</span>
+        <span class="text-blue-600 dark:text-blue-400 font-bold">{{ sector_name }}</span>
+    </nav>
+
+    <!-- Sector Header Banner -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 mb-8 border border-slate-200 dark:border-slate-800 shadow-2xs transition-colors">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white transition-colors">
+                        {{ sector_name }}
+                    </h1>
+                    <span class="px-3 py-1 text-xs sm:text-sm font-bold rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800">
+                        {{ total_companies }} Constituents
+                    </span>
+                </div>
+                <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-2">
+                    Industry overview, aggregate historical revenue, and algorithmic constituent rankings for the Nifty 100 {{ sector_name }} sector.
+                </p>
+            </div>
+            
+            <div class="shrink-0 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-center min-w-[140px]">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sector Avg Health</p>
+                <p class="text-2xl sm:text-3xl font-extrabold mt-0.5 text-blue-600 dark:text-blue-400">
+                    {{ avg_score|floatformat:1 }}<span class="text-xs font-normal text-slate-400">/100</span>
+                </p>
+            </div>
+        </div>
     </div>
 
-    <!-- Sector Averages (PRD Requirement) -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 text-center">
-            <p class="text-sm font-semibold text-slate-500 uppercase">Avg OPM %</p>
-            <p class="text-2xl font-bold text-slate-900 mt-1">18.4%</p>
+    <!-- Sector Averages KPI Cards (PRD Section 7 Requirement) -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-10">
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl shadow-2xs border border-slate-200 dark:border-slate-800 text-center transition-colors">
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Avg OPM %</p>
+            <p class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ avg_opm|floatformat:1 }}%</p>
+            <p class="text-[11px] text-slate-400 mt-1">Operating Profit Margin</p>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 text-center">
-            <p class="text-sm font-semibold text-slate-500 uppercase">Avg ROE</p>
-            <p class="text-2xl font-bold text-slate-900 mt-1">15.2%</p>
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl shadow-2xs border border-slate-200 dark:border-slate-800 text-center transition-colors">
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Avg ROE</p>
+            <p class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ avg_roe|floatformat:1 }}%</p>
+            <p class="text-[11px] text-slate-400 mt-1">Return on Equity</p>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 text-center">
-            <p class="text-sm font-semibold text-slate-500 uppercase">Avg D/E</p>
-            <p class="text-2xl font-bold text-slate-900 mt-1">0.45</p>
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl shadow-2xs border border-slate-200 dark:border-slate-800 text-center transition-colors">
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Avg D/E</p>
+            <p class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ avg_de|floatformat:2 }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">Debt to Equity Ratio</p>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 text-center">
-            <p class="text-sm font-semibold text-slate-500 uppercase">3Y Growth</p>
-            <p class="text-2xl font-bold text-green-600 mt-1">+12.1%</p>
+        <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl shadow-2xs border border-slate-200 dark:border-slate-800 text-center transition-colors">
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">3Y Sales CAGR</p>
+            <p class="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">+{{ avg_growth|floatformat:1 }}%</p>
+            <p class="text-[11px] text-slate-400 mt-1">Revenue Trajectory</p>
         </div>
     </div>
 
-    <!-- Combined Revenue Chart & Top/Bottom Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+    <!-- Aggregate Revenue Chart & Top/Bottom Outliers (PRD Section 7 Requirement) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-10">
         
-        <!-- Chart -->
-        <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-            <h3 class="font-bold text-slate-700 mb-4 text-center">Aggregate Sector Revenue (5 Years)</h3>
-            <div class="relative h-72 w-full"> 
+        <!-- Combined Sector Revenue Chart (2 Columns) -->
+        <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl shadow-2xs border border-slate-200 dark:border-slate-800 transition-colors flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">Aggregate Sector Revenue (5-Year Trend)</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Combined sales volume across all constituents in ₹ Crores</p>
+                </div>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
+                    5Y Trend
+                </span>
+            </div>
+            <div class="relative h-64 sm:h-72 w-full flex-grow"> 
                 <canvas id="sectorChart"></canvas>
             </div>
         </div>
 
-        <!-- Top/Bottom Companies (PRD Requirement) -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col justify-between">
+        <!-- Top 3 and Bottom 3 Outliers (1 Column) -->
+        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl shadow-2xs border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-6 transition-colors">
+            <!-- Top 3 -->
             <div>
-                <h3 class="font-bold text-green-700 border-b border-green-200 pb-2 mb-3">Top 3 by Health Score</h3>
-                <ul class="space-y-2 text-sm">
-                    <li class="flex justify-between"><span>Company A</span> <span class="font-bold">88</span></li>
-                    <li class="flex justify-between"><span>Company B</span> <span class="font-bold">85</span></li>
-                    <li class="flex justify-between"><span>Company C</span> <span class="font-bold">81</span></li>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 border-b border-emerald-100 dark:border-emerald-900/60 pb-2 mb-3 flex items-center justify-between">
+                    <span>Top 3 by Health Score</span>
+                    <span>Score</span>
+                </h3>
+                <ul class="space-y-2 text-xs sm:text-sm">
+                    {% for comp in top_3 %}
+                    <li class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                        <a href="{% url 'company_detail' comp.symbol %}" class="flex items-center gap-2 font-medium text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 truncate">
+                            <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ comp.symbol }}</span>
+                            <span class="truncate text-xs text-slate-500 dark:text-slate-400 max-w-[110px]">{{ comp.company_name }}</span>
+                        </a>
+                        <span class="font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+                            {{ comp.health_score|floatformat:1 }}
+                        </span>
+                    </li>
+                    {% empty %}
+                    <li class="text-xs text-slate-400 py-1">No scored constituents available.</li>
+                    {% endfor %}
                 </ul>
             </div>
-            <div class="mt-6">
-                <h3 class="font-bold text-red-700 border-b border-red-200 pb-2 mb-3">Bottom 3 by Health Score</h3>
-                <ul class="space-y-2 text-sm">
-                    <li class="flex justify-between"><span>Company X</span> <span class="font-bold">42</span></li>
-                    <li class="flex justify-between"><span>Company Y</span> <span class="font-bold">38</span></li>
-                    <li class="flex justify-between"><span>Company Z</span> <span class="font-bold">31</span></li>
+
+            <!-- Bottom 3 -->
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400 border-b border-rose-100 dark:border-rose-900/60 pb-2 mb-3 flex items-center justify-between">
+                    <span>Bottom 3 by Health Score</span>
+                    <span>Score</span>
+                </h3>
+                <ul class="space-y-2 text-xs sm:text-sm">
+                    {% for comp in bottom_3 %}
+                    <li class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                        <a href="{% url 'company_detail' comp.symbol %}" class="flex items-center gap-2 font-medium text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 truncate">
+                            <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ comp.symbol }}</span>
+                            <span class="truncate text-xs text-slate-500 dark:text-slate-400 max-w-[110px]">{{ comp.company_name }}</span>
+                        </a>
+                        <span class="font-bold text-rose-600 dark:text-rose-400 shrink-0">
+                            {{ comp.health_score|floatformat:1 }}
+                        </span>
+                    </li>
+                    {% empty %}
+                    <li class="text-xs text-slate-400 py-1">No scored constituents available.</li>
+                    {% endfor %}
                 </ul>
             </div>
         </div>
+
     </div>
 
-    <!-- Constituents Table -->
-    <h2 class="text-2xl font-bold text-slate-800 mb-4 border-b pb-2">Sector Constituents</h2>
-    <div class="bg-white shadow-md rounded-lg overflow-hidden border border-slate-200">
-        <table class="min-w-full divide-y divide-slate-200">
-            <thead class="bg-slate-50">
-                <tr>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Symbol</th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Company Name</th>
-                    <th class="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase">Action</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-slate-200">
-                {% for company in companies %}
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="px-6 py-4 whitespace-nowrap font-bold text-slate-900">{{ company.symbol }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{{ company.company_name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                        <a href="{% url 'company_detail' company.symbol %}" class="text-blue-600 hover:text-blue-900 font-medium">View &rarr;</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" class="px-6 py-10 text-center text-slate-500">No companies found in this sector.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Sector Constituents Table -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white transition-colors">Sector Constituents</h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">All Nifty 100 companies in the {{ sector_name }} sector ranked by algorithmic health score</p>
+        </div>
+        <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 w-fit">
+            {{ total_companies }} Companies
+        </span>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 shadow-2xs rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="overflow-x-auto w-full" style="-webkit-overflow-scrolling: touch;">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+                <thead class="bg-slate-50 dark:bg-slate-800/60 transition-colors">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Symbol</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Company Name</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Health Score</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Health Label</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800 transition-colors">
+                    {% for company in companies %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-block px-2.5 py-0.5 rounded font-mono text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                {{ company.symbol }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">
+                            {{ company.company_name }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-extrabold {% if company.health_score >= 85 %}text-emerald-600 dark:text-emerald-400{% elif company.health_score >= 70 %}text-blue-600 dark:text-blue-400{% elif company.health_score >= 50 %}text-amber-600 dark:text-amber-400{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+                            {{ company.health_score|default:"N/A"|floatformat:1 }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-xs">
+                            <span class="px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider text-[11px] {% if company.health_score >= 85 %}bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300{% elif company.health_score >= 70 %}bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300{% elif company.health_score >= 50 %}bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300{% else %}bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300{% endif %}">
+                                {{ company.health_label|default:"PENDING" }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                            <a href="{% url 'company_detail' company.symbol %}" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold transition-colors">
+                                View &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+                            No companies found matching this sector.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
 </div>
+{% endblock %}
 
-<!-- Initialize Chart.js -->
+{% block scripts %}
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const ctx = document.getElementById('sectorChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['2020', '2021', '2022', '2023', '2024'],
-                datasets: [{
-                    label: 'Aggregate Revenue (₹ Cr)',
-                    data: [850000, 920000, 1150000, 1320000, 1480000],
-                    backgroundColor: 'rgba(56, 189, 248, 0.8)',
-                    borderRadius: 4
-                }]
+document.addEventListener("DOMContentLoaded", function() {
+    const canvas = document.getElementById('sectorChart');
+    if (!canvas) return;
+
+    const isDark = document.documentElement.classList.contains('dark');
+    const labels = {{ revenue_labels|safe|default:"['FY20', 'FY21', 'FY22', 'FY23', 'FY24']" }};
+    const values = {{ revenue_values|safe|default:"[120000, 135000, 160000, 195000, 220000]" }};
+
+    new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Aggregate Revenue (₹ Cr)',
+                data: values,
+                backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return '₹ ' + Number(context.parsed.y).toLocaleString() + ' Cr';
+                        }
+                    }
+                }
             },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: '₹ Crores' }
+                }
+            }
+        }
     });
+});
 </script>
 {% endblock %}

@@ -1,174 +1,701 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
     
-    <!-- Top Section: Company Profile -->
-    <div class="bg-white shadow-md rounded-lg p-8 mb-8 border border-slate-200">
-        <div class="flex justify-between items-start">
-            <div>
-                <div class="flex items-center gap-4 mb-2">
-                    <h1 class="text-4xl font-bold text-slate-900">{{ company.company_name }}</h1>
-                    <span class="px-3 py-1 text-lg font-bold rounded-full bg-blue-100 text-blue-800">{{ company.symbol }}</span>
+    <!-- Top Section: Company Profile (Responsive Stack on Mobile) -->
+    <div class="bg-white dark:bg-slate-900 shadow-md rounded-xl p-5 sm:p-8 mb-6 sm:mb-8 border border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-6">
+            <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-4 mb-2">
+                    <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white transition-colors break-words">{{ company.company_name }}</h1>
+                    <span class="px-2.5 sm:px-3 py-0.5 sm:py-1 text-sm sm:text-base font-bold rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-transparent dark:border-blue-800 shrink-0">{{ company.symbol }}</span>
                 </div>
-                <p class="text-lg text-slate-600 font-medium">{{ company.sector }}</p>
-                <div class="mt-4 space-x-4">
-                    <a href="{{ company.website }}" target="_blank" class="text-blue-600 hover:underline">Official Website</a>
+                <p class="text-base sm:text-lg text-slate-600 dark:text-slate-400 font-medium transition-colors">{{ company.sector }}</p>
+                {% if company.about_company %}
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-3xl leading-relaxed">{{ company.about_company }}</p>
+                {% endif %}
+                <div class="mt-4 flex flex-wrap gap-4 text-sm font-medium">
+                    {% if company.website %}
+                    <a href="{{ company.website }}" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline transition-colors flex items-center gap-1">
+                        Official Website &rarr;
+                    </a>
+                    {% endif %}
+                    {% if company.nse_url %}
+                    <a href="{{ company.nse_url }}" target="_blank" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                        NSE Profile
+                    </a>
+                    {% endif %}
+                    {% if company.bse_url %}
+                    <a href="{{ company.bse_url }}" target="_blank" class="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                        BSE Profile
+                    </a>
+                    {% endif %}
                 </div>
             </div>
             
-            <!-- Placeholder for Health Score Gauge -->
-            <div class="text-center p-4 bg-slate-50 rounded-lg border border-slate-200 min-w-[150px]">
-                <p class="text-sm font-semibold text-slate-500 uppercase">Health Score</p>
-                <p class="text-3xl font-extrabold text-green-600 mt-1">85/100</p>
-                <p class="text-xs font-bold text-green-800 mt-1 bg-green-200 rounded-full px-2 py-1">EXCELLENT</p>
+            <!-- Live warehouse health score (Responsive Full-Width on Mobile, Compact on Desktop) -->
+            <div class="w-full sm:w-auto text-center p-5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 min-w-[160px] transition-colors shrink-0">
+                <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Health Score</p>
+                <p class="text-3xl font-extrabold mt-1 {% if health_score != None %}{% if health_score >= 70 %}text-emerald-600 dark:text-emerald-400{% elif health_score >= 40 %}text-amber-600 dark:text-amber-400{% else %}text-rose-600 dark:text-rose-400{% endif %}{% else %}text-slate-600 dark:text-slate-400{% endif %}">
+                    {{ health_score|default:"N/A"|floatformat:1 }}{% if health_score != None %}<span class="text-sm font-normal text-slate-500">/100</span>{% endif %}
+                </p>
+                <p class="text-xs font-bold mt-2 inline-block rounded-full px-2.5 py-0.5 {% if health_score != None %}{% if health_score >= 70 %}text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60{% elif health_score >= 40 %}text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60{% else %}text-rose-800 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/60{% endif %}{% else %}text-slate-700 dark:text-slate-300 bg-slate-200 dark:bg-slate-800{% endif %}">
+                    {{ health_label|default:"Pending" }}
+                </p>
             </div>
         </div>
     </div>
 
-    <!-- Bottom Section: Chart.js Analytics (PRD Requirement) -->
-    <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b pb-2">Financial Analytics</h2>
+    <!-- Section Header: Interactive Financial Analytics -->
+    <div class="mb-6 border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center justify-between">
+        <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white transition-colors">Interactive Financial Analytics</h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">Advanced Visualisations & Multi-Horizon Financial Health</p>
+        </div>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            8 Charts Live
+        </span>
+    </div>
     
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- 1. Revenue Chart -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-            <h3 class="font-bold text-slate-700 mb-4 text-center">Revenue & Profit Trend</h3>
-            <div class="relative h-72 w-full"><canvas id="revenueChart"></canvas></div>
+    <!-- 8 Chart.js Containers: Responsive Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+
+        <!-- 1. Revenue & Profit Trend (Grouped Bar + Line) -->
+        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors flex flex-col relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">Revenue & Profit Trend</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Total Revenue & Net Profit (bars) vs Operating Margin % (line)</p>
+                </div>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300">
+                    Grouped Bar + Line
+                </span>
+            </div>
+            <div class="relative h-64 sm:h-72 w-full flex-grow flex items-center justify-center">
+                <div class="chart-skeleton absolute inset-0 bg-slate-50/70 dark:bg-slate-800/50 rounded-lg animate-pulse flex flex-col justify-end p-4 gap-3 z-10 pointer-events-none">
+                    <div class="flex items-end gap-3 h-44 w-full justify-around pt-6">
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-1/2"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-3/4"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-2/3"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-full"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-4/5"></div>
+                    </div>
+                    <div class="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full w-2/3 mx-auto"></div>
+                </div>
+                <div class="chart-error hidden absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 z-10">
+                    <svg class="w-7 h-7 text-rose-500 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Unable to load chart</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Please refresh or try again later</p>
+                </div>
+                <canvas id="revenueProfitChart" class="chart-canvas w-full h-full opacity-0 transition-opacity duration-300"></canvas>
+            </div>
         </div>
 
-        <!-- 2. EPS Trend -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-            <h3 class="font-bold text-slate-700 mb-4 text-center">Earnings Per Share (EPS)</h3>
-            <div class="relative h-72 w-full"><canvas id="epsChart"></canvas></div>
+        <!-- 2. Balance Sheet Composition (Stacked Bar) -->
+        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors flex flex-col relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">Balance Sheet Composition</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Total Assets vs Total Liabilities + Shareholders Equity</p>
+                </div>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300">
+                    Stacked Bar
+                </span>
+            </div>
+            <div class="relative h-64 sm:h-72 w-full flex-grow flex items-center justify-center">
+                <div class="chart-skeleton absolute inset-0 bg-slate-50/70 dark:bg-slate-800/50 rounded-lg animate-pulse flex flex-col justify-end p-4 gap-3 z-10 pointer-events-none">
+                    <div class="flex items-end gap-3 h-44 w-full justify-around pt-6">
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-3/5"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-4/5"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-2/3"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-full"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-5/6"></div>
+                    </div>
+                    <div class="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full w-2/3 mx-auto"></div>
+                </div>
+                <div class="chart-error hidden absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 z-10">
+                    <svg class="w-7 h-7 text-rose-500 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Unable to load chart</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Please refresh or try again later</p>
+                </div>
+                <canvas id="balanceSheetChart" class="chart-canvas w-full h-full opacity-0 transition-opacity duration-300"></canvas>
+            </div>
         </div>
 
-        <!-- 3. Debt to Equity -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-            <h3 class="font-bold text-slate-700 mb-4 text-center">Debt to Equity Ratio</h3>
-            <div class="relative h-72 w-full"><canvas id="debtChart"></canvas></div>
+        <!-- 3. Cash Flow Waterfall (Bar Chart) -->
+        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors flex flex-col relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">Cash Flow Waterfall</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Operating, Investing, Financing, and Net Cash Flow (₹ Cr)</p>
+                </div>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-sky-50 dark:bg-sky-900/40 text-sky-600 dark:text-sky-300">
+                    Waterfall Bar
+                </span>
+            </div>
+            <div class="relative h-64 sm:h-72 w-full flex-grow flex items-center justify-center">
+                <div class="chart-skeleton absolute inset-0 bg-slate-50/70 dark:bg-slate-800/50 rounded-lg animate-pulse flex flex-col justify-end p-4 gap-3 z-10 pointer-events-none">
+                    <div class="flex items-end gap-3 h-44 w-full justify-around pt-6">
+                        <div class="w-10 bg-slate-200 dark:bg-slate-700 rounded-t h-4/5"></div>
+                        <div class="w-10 bg-slate-200 dark:bg-slate-700 rounded-t h-2/5"></div>
+                        <div class="w-10 bg-slate-200 dark:bg-slate-700 rounded-t h-1/3"></div>
+                        <div class="w-10 bg-slate-200 dark:bg-slate-700 rounded-t h-3/5"></div>
+                    </div>
+                    <div class="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full w-2/3 mx-auto"></div>
+                </div>
+                <div class="chart-error hidden absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 z-10">
+                    <svg class="w-7 h-7 text-rose-500 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Unable to load chart</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Please refresh or try again later</p>
+                </div>
+                <canvas id="cashFlowChart" class="chart-canvas w-full h-full opacity-0 transition-opacity duration-300"></canvas>
+            </div>
         </div>
 
-        <!-- 4. Operating Cash Flow -->
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-            <h3 class="font-bold text-slate-700 mb-4 text-center">Operating Cash Flow</h3>
-            <div class="relative h-72 w-full"><canvas id="cashChart"></canvas></div>
+        <!-- 4. EPS & Dividend History (Dual-Line) -->
+        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors flex flex-col relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">EPS & Dividend History</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Earnings Per Share (EPS ₹) vs Dividend Per Share (DPS ₹)</p>
+                </div>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-violet-50 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300">
+                    Dual-Line
+                </span>
+            </div>
+            <div class="relative h-64 sm:h-72 w-full flex-grow flex items-center justify-center">
+                <div class="chart-skeleton absolute inset-0 bg-slate-50/70 dark:bg-slate-800/50 rounded-lg animate-pulse flex flex-col justify-end p-4 gap-3 z-10 pointer-events-none">
+                    <div class="flex items-end gap-3 h-44 w-full justify-around pt-6">
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-2/5"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-3/5"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-1/2"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-4/5"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-full"></div>
+                    </div>
+                    <div class="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full w-2/3 mx-auto"></div>
+                </div>
+                <div class="chart-error hidden absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 z-10">
+                    <svg class="w-7 h-7 text-rose-500 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Unable to load chart</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Please refresh or try again later</p>
+                </div>
+                <canvas id="epsDividendChart" class="chart-canvas w-full h-full opacity-0 transition-opacity duration-300"></canvas>
+            </div>
         </div>
+
+        <!-- 5. Debt vs Equity (Area Chart) -->
+        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors flex flex-col relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">Debt vs Equity Trajectory</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Total Debt (Borrowings) vs Total Equity (Net Worth) [₹ Cr]</p>
+                </div>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300">
+                    Area
+                </span>
+            </div>
+            <div class="relative h-64 sm:h-72 w-full flex-grow flex items-center justify-center">
+                <div class="chart-skeleton absolute inset-0 bg-slate-50/70 dark:bg-slate-800/50 rounded-lg animate-pulse flex flex-col justify-end p-4 gap-3 z-10 pointer-events-none">
+                    <div class="flex items-end gap-3 h-44 w-full justify-around pt-6">
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-3/5"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-1/2"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-3/4"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-2/3"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-4/5"></div>
+                    </div>
+                    <div class="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full w-2/3 mx-auto"></div>
+                </div>
+                <div class="chart-error hidden absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 z-10">
+                    <svg class="w-7 h-7 text-rose-500 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Unable to load chart</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Please refresh or try again later</p>
+                </div>
+                <canvas id="debtEquityChart" class="chart-canvas w-full h-full opacity-0 transition-opacity duration-300"></canvas>
+            </div>
+        </div>
+
+        <!-- 6. CAGR Radar (Radar Chart) -->
+        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors flex flex-col relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">Compounded Growth (CAGR Radar)</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Multi-horizon CAGR: Sales, Profit, Stock Price, and ROE (%)</p>
+                </div>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300">
+                    Radar
+                </span>
+            </div>
+            <div class="relative h-64 sm:h-72 w-full flex-grow flex items-center justify-center">
+                <div class="chart-skeleton absolute inset-0 bg-slate-50/70 dark:bg-slate-800/50 rounded-lg animate-pulse flex flex-col justify-center items-center p-4 z-10 pointer-events-none">
+                    <div class="w-36 h-36 rounded-full border-4 border-dashed border-slate-200 dark:border-slate-700 animate-spin"></div>
+                </div>
+                <div class="chart-error hidden absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 z-10">
+                    <svg class="w-7 h-7 text-rose-500 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Unable to load chart</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Please refresh or try again later</p>
+                </div>
+                <canvas id="cagrRadarChart" class="chart-canvas w-full h-full opacity-0 transition-opacity duration-300"></canvas>
+            </div>
+        </div>
+
+        <!-- 7. Margin Trends (Multi-Line Chart) -->
+        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors flex flex-col relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">Margin Trends</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Gross Profit, Operating (OPM), and Net Profit margins (%)</p>
+                </div>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300">
+                    Multi-Line
+                </span>
+            </div>
+            <div class="relative h-64 sm:h-72 w-full flex-grow flex items-center justify-center">
+                <div class="chart-skeleton absolute inset-0 bg-slate-50/70 dark:bg-slate-800/50 rounded-lg animate-pulse flex flex-col justify-end p-4 gap-3 z-10 pointer-events-none">
+                    <div class="flex items-end gap-3 h-44 w-full justify-around pt-6">
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-1/2"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-2/3"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-3/5"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-4/5"></div>
+                        <div class="w-8 bg-slate-200 dark:bg-slate-700 rounded-t h-3/4"></div>
+                    </div>
+                    <div class="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full w-2/3 mx-auto"></div>
+                </div>
+                <div class="chart-error hidden absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 z-10">
+                    <svg class="w-7 h-7 text-rose-500 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Unable to load chart</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Please refresh or try again later</p>
+                </div>
+                <canvas id="marginTrendsChart" class="chart-canvas w-full h-full opacity-0 transition-opacity duration-300"></canvas>
+            </div>
+        </div>
+
+        <!-- 8. Health Score Gauge (Doughnut Half-Gauge) -->
+        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors flex flex-col relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">Health Score Gauge</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Composite ML Solvency, Quality, Profitability & Growth Rating</p>
+                </div>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300">
+                    Gauge
+                </span>
+            </div>
+            <div class="relative h-64 sm:h-72 w-full flex-grow flex flex-col items-center justify-center">
+                <div class="chart-skeleton absolute inset-0 bg-slate-50/70 dark:bg-slate-800/50 rounded-lg animate-pulse flex flex-col justify-center items-center p-4 z-10 pointer-events-none">
+                    <div class="w-36 h-36 rounded-full border-4 border-dashed border-slate-200 dark:border-slate-700 animate-spin"></div>
+                </div>
+                <div class="chart-error hidden absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 z-10">
+                    <svg class="w-7 h-7 text-rose-500 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Unable to load chart</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Please refresh or try again later</p>
+                </div>
+                
+                <div class="relative w-full h-44 sm:h-48 flex items-center justify-center">
+                    <canvas id="healthGaugeChart" class="chart-canvas w-full h-full opacity-0 transition-opacity duration-300"></canvas>
+                    <!-- Center Overlay Score & Health Rating Pill -->
+                    <div id="gaugeCenterOverlay" class="absolute inset-0 flex flex-col items-center justify-center pt-8 pointer-events-none opacity-0 transition-opacity duration-300">
+                        <span class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white" id="gaugeScoreText">--</span>
+                        <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full mt-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300" id="gaugeLabelPill">--</span>
+                    </div>
+                </div>
+
+                <!-- 4 Pillar Breakdown Under Gauge -->
+                <div id="gaugePillarsContainer" class="w-full grid grid-cols-4 gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 text-center opacity-0 transition-opacity duration-300">
+                    <div>
+                        <p class="text-[10px] text-slate-400 uppercase font-semibold">Profit</p>
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200" id="pillarProfitability">--</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 uppercase font-semibold">Growth</p>
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200" id="pillarGrowth">--</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 uppercase font-semibold">Solvency</p>
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200" id="pillarSolvency">--</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 uppercase font-semibold">Quality</p>
+                        <p class="text-xs font-bold text-slate-800 dark:text-slate-200" id="pillarQuality">--</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 </div>
+{% endblock %}
 
-<!-- Initialize Chart.js -->
+{% block scripts %}
+<!-- Chart.js CDN Library Import -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- AJAX Data Fetch & Chart.js Initialization -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const symbol = "{{ company.symbol }}";
-        const ctx = document.getElementById('revenueChart').getContext('2d');
-        
-        // Fetch real data from your PostgreSQL Data Warehouse via Django
-        fetch(`/api/v1/companies/${symbol}/charts/`)
-            .then(response => response.json())
-            .then(data => {
-                // Update the chart title dynamically
-                document.querySelector('h3.font-bold').innerText = "Revenue & Profit Trend";
+        // 1. Strict Existence Check: Ensure this page is company_detail and chart containers exist
+        const revenueChartEl = document.getElementById('revenueProfitChart') || document.getElementById('revenueChart');
+        if (!revenueChartEl) {
+            return;
+        }
 
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.labels, // Real Years (e.g., Mar 2023, Mar 2024)
-                        datasets: [
-                            {
-                                label: 'OPM %',
-                                data: data.opm, // Real OPM percentages
-                                type: 'line',
-                                borderColor: 'rgba(239, 68, 68, 1)', // Red line
-                                backgroundColor: 'rgba(239, 68, 68, 1)',
-                                borderWidth: 2,
-                                tension: 0.3,
-                                yAxisID: 'y1' // Use secondary Y-axis
+        // 2. Dynamically resolve symbol from Django context or URL pathname
+        const contextSymbol = ("{{ company.symbol|default:'' }}" || "{{ company.symbol_id|default:'' }}" || "{{ symbol|default:'' }}").trim();
+        let symbol = contextSymbol;
+        if (!symbol) {
+            const pathParts = window.location.pathname.split('/').filter(Boolean);
+            if (pathParts.length >= 2 && pathParts[0] === 'company') {
+                symbol = decodeURIComponent(pathParts[1]).trim();
+            }
+        }
+        if (!symbol) {
+            return;
+        }
+
+        // Theme colors dynamically aware of light / dark mode
+        const isDark = document.documentElement.classList.contains('dark');
+        const defaultTextColor = isDark ? '#cbd5e1' : '#475569';
+        const defaultGridColor = isDark ? 'rgba(51, 65, 85, 0.4)' : 'rgba(226, 232, 240, 0.8)';
+
+        if (window.Chart) {
+            Chart.defaults.color = defaultTextColor;
+            Chart.defaults.borderColor = defaultGridColor;
+            Chart.defaults.font.family = 'inherit';
+        }
+
+        // Helper UI State Handlers
+        function hideSkeletons() {
+            document.querySelectorAll('.chart-skeleton').forEach(function(el) {
+                el.classList.add('hidden');
+            });
+        }
+
+        function showCanvases() {
+            document.querySelectorAll('.chart-canvas').forEach(function(el) {
+                el.classList.remove('opacity-0');
+            });
+        }
+
+        function showErrors(err) {
+            console.error("Failed to load company chart data:", err);
+            hideSkeletons();
+            document.querySelectorAll('.chart-error').forEach(function(el) {
+                el.classList.remove('hidden');
+            });
+        }
+
+        // Fetch pre-formatted financial visualisations payload from REST API endpoint
+        fetch(`/api/v1/companies/${encodeURIComponent(symbol)}/charts/`)
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: Failed to fetch chart data for ${symbol}`);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                // Remove skeleton placeholders and reveal canvases
+                hideSkeletons();
+                showCanvases();
+
+                if (!data) return;
+
+                // 1. Revenue & Profit Trend (Grouped Bar + Line)
+                const revenueProfitCanvas = document.getElementById('revenueProfitChart') || document.getElementById('revenueChart');
+                const rpData = data.revenue_profit_trend || data.revenue_ebitda_trend;
+                if (revenueProfitCanvas && rpData && rpData.datasets) {
+                    new Chart(revenueProfitCanvas.getContext('2d'), {
+                        data: rpData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: { display: true, position: 'top' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            if (ctx.dataset.yAxisID === 'y1') {
+                                                return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toFixed(1) + '%';
+                                            }
+                                            return ctx.dataset.label + ': ₹' + Number(ctx.parsed.y).toLocaleString() + ' Cr';
+                                        }
+                                    }
+                                }
                             },
-                            {
-                                label: 'Revenue (₹ Cr)',
-                                data: data.revenue, // Real Sales
-                                backgroundColor: 'rgba(37, 99, 235, 0.8)', // Blue bar
-                                borderRadius: 4,
-                                yAxisID: 'y'
-                            },
-                            {
-                                label: 'Net Profit (₹ Cr)',
-                                data: data.net_profit, // Real Profit
-                                backgroundColor: 'rgba(16, 185, 129, 0.8)', // Green bar
-                                borderRadius: 4,
-                                yAxisID: 'y'
-                            }
-                        ]
-                    },
-                    options: { 
-                        responsive: true, 
-                        maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false },
-                        scales: {
-                            y: {
-                                type: 'linear',
-                                display: true,
-                                position: 'left',
-                                title: { display: true, text: '₹ Crores' }
-                            },
-                            y1: {
-                                type: 'linear',
-                                display: true,
-                                position: 'right',
-                                title: { display: true, text: 'Percentage (%)' },
-                                grid: { drawOnChartArea: false } // Prevent gridline overlap
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: { display: true, text: '₹ Crores' },
+                                    grid: { color: defaultGridColor }
+                                },
+                                y1: {
+                                    position: 'right',
+                                    beginAtZero: true,
+                                    title: { display: true, text: 'OPM (%)' },
+                                    grid: { drawOnChartArea: false },
+                                    ticks: {
+                                        callback: function(v) { return v + '%'; }
+                                    }
+                                }
                             }
                         }
+                    });
+                }
+
+                // 2. Balance Sheet Composition (Stacked Bar)
+                const balanceSheetCanvas = document.getElementById('balanceSheetChart');
+                if (balanceSheetCanvas && data.balance_sheet_composition && data.balance_sheet_composition.datasets) {
+                    new Chart(balanceSheetCanvas.getContext('2d'), {
+                        type: 'bar',
+                        data: data.balance_sheet_composition,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: { display: true, position: 'top' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            return ctx.dataset.label + ': ₹' + Number(ctx.parsed.y).toLocaleString() + ' Cr';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: { stacked: true },
+                                y: {
+                                    stacked: true,
+                                    beginAtZero: true,
+                                    title: { display: true, text: '₹ Crores' }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 3. Cash Flow Waterfall (Bar Chart)
+                const cashFlowCanvas = document.getElementById('cashFlowChart') || document.getElementById('cashChart');
+                if (cashFlowCanvas && data.cash_flow_waterfall && data.cash_flow_waterfall.datasets) {
+                    new Chart(cashFlowCanvas.getContext('2d'), {
+                        type: 'bar',
+                        data: data.cash_flow_waterfall,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: true, position: 'top' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            return ctx.dataset.label + ': ₹' + Number(ctx.parsed.y).toLocaleString() + ' Cr';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    title: { display: true, text: '₹ Crores' }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 4. EPS & Dividend History (Dual-Line)
+                const epsDivCanvas = document.getElementById('epsDividendChart') || document.getElementById('epsChart');
+                const epsData = data.eps_dividend_history || data.eps_trend;
+                if (epsDivCanvas && epsData && epsData.datasets) {
+                    new Chart(epsDivCanvas.getContext('2d'), {
+                        data: epsData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: { display: true, position: 'top' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            return ctx.dataset.label + ': ₹' + Number(ctx.parsed.y).toFixed(2);
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: { display: true, text: '₹ per share' }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 5. Debt vs Equity (Area Chart)
+                const debtEquityCanvas = document.getElementById('debtEquityChart') || document.getElementById('debtChart');
+                const deData = data.debt_vs_equity || data.debt_to_equity_trend;
+                if (debtEquityCanvas && deData && deData.datasets) {
+                    new Chart(debtEquityCanvas.getContext('2d'), {
+                        data: deData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: { display: true, position: 'top' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            return ctx.dataset.label + ': ₹' + Number(ctx.parsed.y).toLocaleString() + ' Cr';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: { display: true, text: '₹ Crores' }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 6. CAGR Radar (Radar Chart)
+                const cagrCanvas = document.getElementById('cagrRadarChart');
+                if (cagrCanvas && data.cagr_radar && data.cagr_radar.datasets) {
+                    new Chart(cagrCanvas.getContext('2d'), {
+                        type: 'radar',
+                        data: data.cagr_radar,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: true, position: 'top' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            return ctx.dataset.label + ': ' + Number(ctx.parsed.r).toFixed(1) + '%';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                r: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        backdropColor: 'transparent',
+                                        callback: function(v) { return v + '%'; }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 7. Margin Trends (Multi-Line Chart)
+                const marginCanvas = document.getElementById('marginTrendsChart') || document.getElementById('marginChart');
+                if (marginCanvas && data.margin_trends && data.margin_trends.datasets) {
+                    new Chart(marginCanvas.getContext('2d'), {
+                        type: 'line',
+                        data: data.margin_trends,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: {
+                                legend: { display: true, position: 'top' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toFixed(2) + '%';
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    title: { display: true, text: 'Percentage (%)' },
+                                    ticks: {
+                                        callback: function(v) { return v + '%'; }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 8. Health Score Gauge (Doughnut Half-Gauge)
+                const gaugeCanvas = document.getElementById('healthGaugeChart');
+                if (gaugeCanvas && data.health_score_gauge && data.health_score_gauge.datasets) {
+                    new Chart(gaugeCanvas.getContext('2d'), {
+                        type: 'doughnut',
+                        data: data.health_score_gauge,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            rotation: -90,
+                            circumference: 180,
+                            cutout: '72%',
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            if (ctx.dataIndex === 0) {
+                                                return 'Health Score: ' + data.health_score_gauge.score + '/100 (' + (data.health_score_gauge.health_label || 'GOOD') + ')';
+                                            }
+                                            return null;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Populate gauge center overlay & pillar scores
+                    const scoreVal = data.health_score_gauge.score;
+                    const labelVal = data.health_score_gauge.health_label || 'GOOD';
+                    const scoreText = document.getElementById('gaugeScoreText');
+                    const labelPill = document.getElementById('gaugeLabelPill');
+                    const overlay = document.getElementById('gaugeCenterOverlay');
+                    if (scoreText) scoreText.textContent = Number(scoreVal).toFixed(1);
+                    if (labelPill) {
+                        labelPill.textContent = labelVal;
+                        if (scoreVal >= 80) {
+                            labelPill.className = "text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full mt-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300";
+                        } else if (scoreVal >= 60) {
+                            labelPill.className = "text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full mt-1 bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300";
+                        } else if (scoreVal >= 40) {
+                            labelPill.className = "text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full mt-1 bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300";
+                        } else {
+                            labelPill.className = "text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full mt-1 bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300";
+                        }
                     }
-                });
+                    if (overlay) overlay.classList.remove('opacity-0');
 
-                // 2. EPS Chart (Line)
-                new Chart(document.getElementById('epsChart').getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: 'EPS (₹)',
-                            data: data.eps,
-                            borderColor: 'rgba(139, 92, 246, 1)', // Purple line
-                            backgroundColor: 'rgba(139, 92, 246, 0.2)',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-
-                // 3. Debt to Equity (Bar)
-                new Chart(document.getElementById('debtChart').getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: 'D/E Ratio',
-                            data: data.debt_to_equity,
-                            backgroundColor: 'rgba(245, 158, 11, 0.8)' // Amber bar
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-
-                // 4. Operating Cash Flow (Bar)
-                new Chart(document.getElementById('cashChart').getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: 'Operating Cash Flow (₹ Cr)',
-                            data: data.operating_cash,
-                            backgroundColor: 'rgba(14, 165, 233, 0.8)' // Light blue bar
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
+                    // Populate pillars if present
+                    if (data.health_score_gauge.pillars) {
+                        const p = data.health_score_gauge.pillars;
+                        const profEl = document.getElementById('pillarProfitability');
+                        const growEl = document.getElementById('pillarGrowth');
+                        const solvEl = document.getElementById('pillarSolvency');
+                        const qualEl = document.getElementById('pillarQuality');
+                        if (profEl && p.profitability != null) profEl.textContent = Number(p.profitability).toFixed(1);
+                        if (growEl && p.growth != null) growEl.textContent = Number(p.growth).toFixed(1);
+                        if (solvEl && p.solvency != null) solvEl.textContent = Number(p.solvency).toFixed(1);
+                        if (qualEl && p.quality != null) qualEl.textContent = Number(p.quality).toFixed(1);
+                        const pillarsContainer = document.getElementById('gaugePillarsContainer');
+                        if (pillarsContainer) pillarsContainer.classList.remove('opacity-0');
+                    }
+                }
             })
-            .catch(error => console.error("Error fetching chart data:", error));
+            .catch(function(error) {
+                showErrors(error);
+            });
     });
 </script>
 {% endblock %}

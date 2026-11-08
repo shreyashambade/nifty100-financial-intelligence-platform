@@ -5,6 +5,8 @@
 #   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
+import uuid
+import secrets
 from django.db import models
 
 
@@ -16,7 +18,7 @@ class DimCompanies(models.Model):
         db_table = 'dim_companies'
         
     def __str__(self):
-            return str(self.symbol)
+        return str(self.symbol)
 
 
 class DimCompany(models.Model):
@@ -28,23 +30,20 @@ class DimCompany(models.Model):
     website = models.TextField(blank=True, null=True)
     nse_url = models.TextField(blank=True, null=True)
     bse_url = models.TextField(blank=True, null=True)
-    face_value = models.DecimalField(blank=True, null=True)
-    book_value = models.DecimalField(blank=True, null=True)
+    face_value = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    book_value = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
     about_company = models.TextField(blank=True, null=True)
-    
     
     class Meta:
         managed = False
         db_table = 'dim_company'
-        
-    
 
 
 class DimHealthLabel(models.Model):
     label_id = models.AutoField(primary_key=True)
     label_name = models.CharField(max_length=50, blank=True, null=True)
-    min_score = models.DecimalField(blank=True, null=True)
-    max_score = models.DecimalField(blank=True, null=True)
+    min_score = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    max_score = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
     color_hex = models.CharField(max_length=10, blank=True, null=True)
 
     class Meta:
@@ -70,10 +69,10 @@ class FactAnalysis(models.Model):
     pk = models.CompositePrimaryKey('symbol', 'period_label')
     symbol = models.ForeignKey(DimCompanies, models.DO_NOTHING, db_column='symbol')
     period_label = models.CharField(max_length=50)
-    compounded_sales_growth_pct = models.DecimalField(blank=True, null=True)
-    compounded_profit_growth_pct = models.DecimalField(blank=True, null=True)
-    stock_price_cagr_pct = models.DecimalField(blank=True, null=True)
-    roe_pct = models.DecimalField(blank=True, null=True)
+    compounded_sales_growth_pct = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    compounded_profit_growth_pct = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    stock_price_cagr_pct = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    roe_pct = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -86,19 +85,19 @@ class FactBalanceSheet(models.Model):
     year = models.ForeignKey(DimYears, models.DO_NOTHING)
     year_label = models.CharField(max_length=50, blank=True, null=True)
     sort_order = models.IntegerField(blank=True, null=True)
-    equity_capital = models.DecimalField(blank=True, null=True)
-    reserves = models.DecimalField(blank=True, null=True)
-    borrowings = models.DecimalField(blank=True, null=True)
-    other_liabilities = models.DecimalField(blank=True, null=True)
-    total_liabilities = models.DecimalField(blank=True, null=True)
-    fixed_assets = models.DecimalField(blank=True, null=True)
-    cwip = models.DecimalField(blank=True, null=True)
-    investments = models.DecimalField(blank=True, null=True)
-    other_assets = models.DecimalField(blank=True, null=True)
-    total_assets = models.DecimalField(blank=True, null=True)
-    debt_to_equity = models.DecimalField(blank=True, null=True)
-    equity_ratio = models.DecimalField(blank=True, null=True)
-    book_value_per_share = models.DecimalField(blank=True, null=True)
+    equity_capital = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    reserves = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    borrowings = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    other_liabilities = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    total_liabilities = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    fixed_assets = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    cwip = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    investments = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    other_assets = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    total_assets = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    debt_to_equity = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    equity_ratio = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    book_value_per_share = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -111,12 +110,12 @@ class FactCashFlow(models.Model):
     year = models.ForeignKey(DimYears, models.DO_NOTHING)
     year_label = models.CharField(max_length=50, blank=True, null=True)
     sort_order = models.IntegerField(blank=True, null=True)
-    operating_activity = models.DecimalField(blank=True, null=True)
-    investing_activity = models.DecimalField(blank=True, null=True)
-    financing_activity = models.DecimalField(blank=True, null=True)
-    net_cash_flow = models.DecimalField(blank=True, null=True)
-    free_cash_flow = models.DecimalField(blank=True, null=True)
-    cash_conversion_ratio = models.DecimalField(blank=True, null=True)
+    operating_activity = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    investing_activity = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    financing_activity = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    net_cash_flow = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    free_cash_flow = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    cash_conversion_ratio = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -127,13 +126,13 @@ class FactMlScores(models.Model):
     pk = models.CompositePrimaryKey('symbol', 'computed_at')
     symbol = models.ForeignKey(DimCompanies, models.DO_NOTHING, db_column='symbol')
     computed_at = models.DateTimeField()
-    overall_score = models.DecimalField(blank=True, null=True)
-    profitability_score = models.DecimalField(blank=True, null=True)
-    growth_score = models.DecimalField(blank=True, null=True)
-    leverage_score = models.DecimalField(blank=True, null=True)
-    cashflow_score = models.DecimalField(blank=True, null=True)
-    dividend_score = models.DecimalField(blank=True, null=True)
-    trend_score = models.DecimalField(blank=True, null=True)
+    overall_score = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    profitability_score = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    growth_score = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    leverage_score = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    cashflow_score = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    dividend_score = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    trend_score = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
     health_label = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
@@ -147,23 +146,23 @@ class FactProfitLoss(models.Model):
     year = models.ForeignKey(DimYears, models.DO_NOTHING)
     year_label = models.CharField(max_length=50, blank=True, null=True)
     sort_order = models.IntegerField(blank=True, null=True)
-    sales = models.DecimalField(blank=True, null=True)
-    expenses = models.DecimalField(blank=True, null=True)
-    operating_profit = models.DecimalField(blank=True, null=True)
-    opm_pct = models.DecimalField(blank=True, null=True)
-    other_income = models.DecimalField(blank=True, null=True)
-    interest = models.DecimalField(blank=True, null=True)
-    depreciation = models.DecimalField(blank=True, null=True)
-    profit_before_tax = models.DecimalField(blank=True, null=True)
-    tax_pct = models.DecimalField(blank=True, null=True)
-    net_profit = models.DecimalField(blank=True, null=True)
-    eps = models.DecimalField(blank=True, null=True)
-    dividend_payout_pct = models.DecimalField(blank=True, null=True)
-    net_profit_margin_pct = models.DecimalField(blank=True, null=True)
-    expense_ratio_pct = models.DecimalField(blank=True, null=True)
-    interest_coverage = models.DecimalField(blank=True, null=True)
-    asset_turnover = models.DecimalField(blank=True, null=True)
-    return_on_assets = models.DecimalField(blank=True, null=True)
+    sales = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    expenses = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    operating_profit = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    opm_pct = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    other_income = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    interest = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    depreciation = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    profit_before_tax = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    tax_pct = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    net_profit = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    eps = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    dividend_payout_pct = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    net_profit_margin_pct = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    expense_ratio_pct = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    interest_coverage = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    asset_turnover = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
+    return_on_assets = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -176,9 +175,166 @@ class FactProsCons(models.Model):
     category = models.CharField(max_length=255, blank=True, null=True)
     text = models.TextField(blank=True, null=True)
     source = models.CharField(max_length=50, blank=True, null=True)
-    confidence = models.DecimalField(blank=True, null=True)
+    confidence = models.DecimalField(max_digits=15, decimal_places=4, blank=True, null=True)
     generated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'fact_pros_cons'
+
+
+class ChannelPartner(models.Model):
+    """
+    Channel Partner model for Phase 2 Secure Partner API.
+    Identified via api_key, authenticated via HMAC-SHA256 signature using secret_key.
+    Enforces tier-based Redis rate limits: BASIC, PRO, and ENTERPRISE.
+    """
+    TIER_BASIC = 'BASIC'
+    TIER_PRO = 'PRO'
+    TIER_ENTERPRISE = 'ENTERPRISE'
+    TIER_CHOICES = [
+        (TIER_BASIC, 'BASIC'),
+        (TIER_PRO, 'PRO'),
+        (TIER_ENTERPRISE, 'ENTERPRISE'),
+    ]
+
+    name = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)
+    api_key = models.CharField(max_length=64, unique=True, default=uuid.uuid4, db_index=True)
+    secret_key = models.CharField(max_length=128, default=secrets.token_hex)
+    tier = models.CharField(
+        max_length=20,
+        choices=TIER_CHOICES,
+        default=TIER_BASIC,
+        db_index=True,
+        help_text="Partner rate limiting tier: BASIC, PRO, or ENTERPRISE"
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'channel_partner'
+        verbose_name = 'Channel Partner'
+        verbose_name_plural = 'Channel Partners'
+
+    @property
+    def key_id(self):
+        """Alias for api_key to support Stream C PRD conventions."""
+        return self.api_key
+
+    @property
+    def key_secret(self):
+        """Alias for secret_key to support Stream C PRD conventions."""
+        return self.secret_key
+
+    def __str__(self):
+        return f"{self.name} ({self.api_key})"
+
+
+class APIUsageLog(models.Model):
+    """
+    Asynchronously logged API Usage Log model for Phase 2 Channel Partner API tracking.
+    Captures partner identity, endpoint metrics, latency, and request/response payloads.
+    """
+    partner = models.ForeignKey(
+        ChannelPartner,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='usage_logs'
+    )
+    endpoint = models.CharField(max_length=512)
+    method = models.CharField(max_length=16)
+    status_code = models.IntegerField()
+    response_ms = models.IntegerField()
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    request_size = models.IntegerField(default=0)
+    response_size = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'api_usage_log'
+        verbose_name = 'API Usage Log'
+        verbose_name_plural = 'API Usage Logs'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        partner_name = self.partner.name if self.partner else "Anonymous"
+        return f"[{self.method}] {self.endpoint} ({self.status_code}) - {partner_name} - {self.response_ms}ms"
+
+
+class WebhookSubscription(models.Model):
+    """
+    Channel Partner Webhook Subscription model.
+    Partners subscribe to automated platform events such as score_updated and anomaly_flagged.
+    """
+    EVENT_SCORE_UPDATED = 'score_updated'
+    EVENT_ANOMALY_FLAGGED = 'anomaly_flagged'
+    EVENT_CHOICES = [
+        (EVENT_SCORE_UPDATED, 'score_updated'),
+        (EVENT_ANOMALY_FLAGGED, 'anomaly_flagged'),
+    ]
+
+    partner = models.ForeignKey(
+        ChannelPartner,
+        on_delete=models.CASCADE,
+        related_name='webhook_subscriptions'
+    )
+    event_type = models.CharField(
+        max_length=64,
+        choices=EVENT_CHOICES,
+        default=EVENT_SCORE_UPDATED
+    )
+    target_url = models.URLField(max_length=512)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'webhook_subscription'
+        verbose_name = 'Webhook Subscription'
+        verbose_name_plural = 'Webhook Subscriptions'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.partner.name} -> {self.event_type} ({self.target_url})"
+
+
+class WebhookEvent(models.Model):
+    """
+    Logs every webhook delivery attempt, payload, HMAC signature status, and retry history.
+    """
+    STATUS_PENDING = 'PENDING'
+    STATUS_SUCCESS = 'SUCCESS'
+    STATUS_FAILED = 'FAILED'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'PENDING'),
+        (STATUS_SUCCESS, 'SUCCESS'),
+        (STATUS_FAILED, 'FAILED'),
+    ]
+
+    subscription = models.ForeignKey(
+        WebhookSubscription,
+        on_delete=models.CASCADE,
+        related_name='delivery_events'
+    )
+    payload = models.JSONField()
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING
+    )
+    retry_count = models.IntegerField(default=0)
+    status_code = models.IntegerField(null=True, blank=True, help_text="HTTP response status code from webhook receiver")
+    response_body = models.TextField(null=True, blank=True, help_text="HTTP response body snippet from webhook receiver")
+    last_error = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'webhook_event'
+        verbose_name = 'Webhook Event'
+        verbose_name_plural = 'Webhook Events'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Event #{self.pk} [{self.status}] - {self.subscription.event_type} (Retries: {self.retry_count})"

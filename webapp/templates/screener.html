@@ -1,83 +1,367 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col md:flex-row gap-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
     
-    <!-- Left Sidebar: Filters (PRD Requirements) -->
-    <div class="w-full md:w-1/4 bg-white p-6 rounded-lg shadow-sm border border-slate-200 h-fit">
-        <h2 class="text-xl font-bold text-slate-900 mb-6 border-b pb-2">Filters</h2>
-        
-        <form id="screenerForm" class="space-y-5">
-            <!-- Sector Filter -->
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Sector</label>
-                <select name="sector" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                    <option value="">All Sectors</option>
-                    {% for sector in sectors %}
-                    <option value="{{ sector }}">{{ sector }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Health Label Filter -->
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Health Label</label>
-                <select name="health_label" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                    <option value="">Any Label</option>
-                    <option value="EXCELLENT">Excellent</option>
-                    <option value="GOOD">Good</option>
-                    <option value="AVERAGE">Average</option>
-                    <option value="WEAK">Weak</option>
-                    <option value="POOR">Poor</option>
-                </select>
-            </div>
-
-            <!-- Min ROE -->
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Min ROE (%)</label>
-                <input type="number" name="min_roe" placeholder="e.g. 15" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-            </div>
-
-            <!-- Max D/E Ratio -->
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Max Debt-to-Equity</label>
-                <input type="number" step="0.1" name="max_de" placeholder="e.g. 1.0" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-            </div>
-
-            <button type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
-                Apply Filters
-            </button>
-        </form>
+    <!-- Page Header -->
+    <div class="mb-6 sm:mb-8">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight transition-colors">
+            Financial Stock Screener
+        </h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Filter Nifty 100 enterprise constituents by algorithmic health score, profitability, leverage, and growth metrics.
+        </p>
     </div>
 
-    <!-- Right Side: Results Table -->
-    <div class="w-full md:w-3/4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold text-slate-900">Screener Results</h2>
-            <span class="text-sm font-medium text-slate-500">Showing all matching companies</span>
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-stretch">
+        
+        <!-- Left Sidebar: Filters Form (Natural Document Layout) -->
+        <div class="lg:col-span-1 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 transition-colors">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-5">
+                <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                    </svg>
+                    <span>Screener Filters</span>
+                </h2>
+                <button type="button" id="resetFiltersBtn" class="text-xs font-semibold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition">
+                    Reset
+                </button>
+            </div>
+            
+            <form id="screenerForm" class="space-y-4 text-xs sm:text-sm">
+                <!-- 1. Sector Filter -->
+                <div>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Sector</label>
+                    <select name="sector" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm transition">
+                        <option value="">All Sectors</option>
+                        {% for s in sectors %}
+                        <option value="{{ s }}">{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- 2. Health Label Filter -->
+                <div>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Health Label</label>
+                    <select name="health_label" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm transition">
+                        <option value="">Any Label</option>
+                        <option value="EXCELLENT">Excellent (&ge; 85)</option>
+                        <option value="GOOD">Good (70 - 84)</option>
+                        <option value="AVERAGE">Average (50 - 69)</option>
+                        <option value="WEAK">Weak (35 - 49)</option>
+                        <option value="POOR">Poor (&lt; 35)</option>
+                    </select>
+                </div>
+
+                <!-- 3. Minimum Health Score -->
+                <div>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Minimum Health Score</label>
+                    <input type="number" name="min_health_score" min="0" max="100" step="1" placeholder="e.g. 70" 
+                           class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm transition">
+                </div>
+
+                <!-- 4. Min & Max ROE Range -->
+                <div>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Return on Equity (ROE %)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" name="min_roe" step="0.5" placeholder="Min % (e.g. 15)" 
+                               class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs transition">
+                        <input type="number" name="max_roe" step="0.5" placeholder="Max % (e.g. 50)" 
+                               class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs transition">
+                    </div>
+                </div>
+
+                <!-- 5. Max Debt-to-Equity Ratio -->
+                <div>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Max Debt-to-Equity</label>
+                    <input type="number" step="0.1" name="max_de" placeholder="e.g. 1.0 (or 0.5)" 
+                           class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm transition">
+                </div>
+
+                <!-- 6. Min 3Y Compounded Sales Growth -->
+                <div>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Min 3Y Sales Growth (%)</label>
+                    <input type="number" step="0.5" name="min_sales_growth" placeholder="e.g. 10 (or 15)" 
+                           class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm transition">
+                </div>
+
+                <!-- Action Button -->
+                <div class="pt-3">
+                    <button type="submit" id="applyFiltersBtn" 
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition shadow-xs flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <span>Apply Filters</span>
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <div class="bg-white shadow-md rounded-lg overflow-x-auto border border-slate-200">
-            <table class="min-w-full divide-y divide-slate-200">
-                <thead class="bg-slate-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Symbol</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Company Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Sector</th>
-                        <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="screenerResults" class="bg-white divide-y divide-slate-200">
-                    <!-- Results will be populated here via AJAX. Placeholder for visual structure: -->
-                    <tr class="hover:bg-slate-50 transition">
-                        <td colspan="4" class="px-6 py-10 text-center text-slate-500">
-                            Configure filters and click "Apply Filters" to query the database.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Right Side: Results Column Wrapper (Locked to Left Panel Height via Relative h-full) -->
+        <div class="lg:col-span-3 w-full min-w-0 relative h-full min-h-[520px]">
+            <!-- Absolute Fill Table Container with Border and Shadow -->
+            <div class="absolute inset-0 flex flex-col rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden transition-colors">
+                <!-- Header inside the card -->
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                    <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white transition-colors">
+                        Screener Matches
+                    </h2>
+                    <span id="resultsCount" class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
+                        Querying companies...
+                    </span>
+                </div>
+
+                <!-- Internal Scroll Table -->
+                <div class="flex-1 overflow-y-auto overflow-x-auto pr-2 custom-scrollbar" style="-webkit-overflow-scrolling: touch;">
+                    <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+                        <thead class="sticky top-0 bg-slate-50 dark:bg-slate-800/95 backdrop-blur-xs z-10 transition-colors text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider shadow-xs">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 text-left">Symbol</th>
+                                <th scope="col" class="px-6 py-4 text-left">Company Name</th>
+                                <th scope="col" class="px-6 py-4 text-left">Sector</th>
+                                <th scope="col" class="px-6 py-4 text-center">Health Score</th>
+                                <th scope="col" class="px-6 py-4 text-right">OPM (%)</th>
+                                <th scope="col" class="px-6 py-4 text-right">Debt / Equity</th>
+                                <th scope="col" class="px-6 py-4 text-right">3Y Sales Growth</th>
+                                <th scope="col" class="px-6 py-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="screenerResults" class="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800 text-sm transition-colors">
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                                <td colspan="8" class="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <svg class="animate-spin h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                        </svg>
+                                        <span>Loading matching constituents...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
+
     </div>
 
 </div>
+
+<!-- Screener AJAX Filtering Script -->
+<script>
+    (function () {
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatDecimal(val, decimals = 2) {
+            if (val === null || val === undefined || val === '') return 'N/A';
+            const num = Number(val);
+            if (isNaN(num)) return escapeHtml(String(val));
+            return num.toFixed(decimals);
+        }
+
+        function formatGrowth(val) {
+            if (val === null || val === undefined || val === '') return '<span class="text-slate-400">N/A</span>';
+            const num = Number(val);
+            if (isNaN(num)) return `<span class="text-slate-400">${escapeHtml(String(val))}</span>`;
+            const formatted = num.toFixed(2);
+            if (num > 0) {
+                return `<span class="text-emerald-600 dark:text-emerald-400 font-semibold">+${formatted}%</span>`;
+            } else if (num < 0) {
+                return `<span class="text-rose-600 dark:text-rose-400 font-semibold">${formatted}%</span>`;
+            }
+            return `<span class="text-slate-600 dark:text-slate-400 font-semibold">${formatted}%</span>`;
+        }
+
+        function getHealthBadge(score, label) {
+            if (score === null || score === undefined || score === '') {
+                return '<span class="text-xs text-slate-400">N/A</span>';
+            }
+            const num = Number(score);
+            const scoreText = !isNaN(num) ? num.toFixed(1) : escapeHtml(String(score));
+            const labelText = escapeHtml(label || 'N/A');
+
+            let badgeClass = 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border-rose-200/60 dark:border-rose-800/60';
+            if (!isNaN(num)) {
+                if (num >= 85) {
+                    badgeClass = 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/60';
+                } else if (num >= 70) {
+                    badgeClass = 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-200/60 dark:border-blue-800/60';
+                } else if (num >= 50) {
+                    badgeClass = 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200/60 dark:border-amber-800/60';
+                }
+            }
+            return `
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${badgeClass}">
+                    <span>${scoreText}</span>
+                    <span class="text-[10px] font-medium opacity-80">• ${labelText}</span>
+                </div>
+            `;
+        }
+
+        function initScreener() {
+            const screenerForm = document.getElementById('screenerForm');
+            const screenerResults = document.getElementById('screenerResults');
+            const resultsCount = document.getElementById('resultsCount');
+            const resetBtn = document.getElementById('resetFiltersBtn');
+
+            if (!screenerForm || !screenerResults) return;
+
+            async function fetchScreenerResults(e) {
+                if (e && typeof e.preventDefault === 'function') {
+                    e.preventDefault();
+                }
+
+                // Read all 7 PRD filter parameter inputs
+                const sector = screenerForm.elements['sector'] ? screenerForm.elements['sector'].value.trim() : '';
+                const healthLabel = screenerForm.elements['health_label'] ? screenerForm.elements['health_label'].value.trim() : '';
+                const minHealthScore = screenerForm.elements['min_health_score'] ? screenerForm.elements['min_health_score'].value.trim() : '';
+                const minRoe = screenerForm.elements['min_roe'] ? screenerForm.elements['min_roe'].value.trim() : '';
+                const maxRoe = screenerForm.elements['max_roe'] ? screenerForm.elements['max_roe'].value.trim() : '';
+                const maxDe = screenerForm.elements['max_de'] ? screenerForm.elements['max_de'].value.trim() : '';
+                const minSalesGrowth = screenerForm.elements['min_sales_growth'] ? screenerForm.elements['min_sales_growth'].value.trim() : '';
+
+                const params = new URLSearchParams();
+                if (sector) params.append('sector', sector);
+                if (healthLabel) params.append('health_label', healthLabel);
+                if (minHealthScore) params.append('min_health_score', minHealthScore);
+                if (minRoe) params.append('min_roe', minRoe);
+                if (maxRoe) params.append('max_roe', maxRoe);
+                if (maxDe) params.append('max_de', maxDe);
+                if (minSalesGrowth) params.append('min_sales_growth', minSalesGrowth);
+
+                const queryString = params.toString();
+                const url = `/api/v1/screener/results/${queryString ? '?' + queryString : ''}`;
+
+                if (resultsCount) resultsCount.textContent = 'Filtering...';
+
+                screenerResults.innerHTML = `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                        <td colspan="8" class="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                            <div class="flex items-center justify-center space-x-2">
+                                <svg class="animate-spin h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                </svg>
+                                <span>Evaluating Nifty 100 constituents...</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    screenerResults.innerHTML = '';
+
+                    if (!Array.isArray(data) || data.length === 0) {
+                        if (resultsCount) resultsCount.textContent = 'Found 0 matching companies';
+                        screenerResults.innerHTML = `
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                                <td colspan="8" class="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                                    <p class="font-medium text-slate-700 dark:text-slate-200">No companies found matching the specified criteria.</p>
+                                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Try relaxing one or more filter thresholds in the sidebar.</p>
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+
+                    if (resultsCount) {
+                        resultsCount.textContent = `Showing ${data.length} matching compan${data.length === 1 ? 'y' : 'ies'}`;
+                    }
+
+                    data.forEach(company => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition';
+
+                        const symbol = escapeHtml(company.symbol || '');
+                        const companyName = escapeHtml(company.company_name || symbol);
+                        const sectorName = escapeHtml(company.sector || 'N/A');
+                        const healthBadge = getHealthBadge(company.health_score, company.health_label);
+                        const opmText = company.opm_pct !== null && company.opm_pct !== undefined 
+                            ? `${formatDecimal(company.opm_pct, 2)}%` 
+                            : '<span class="text-slate-400">N/A</span>';
+                        const deText = company.debt_to_equity !== null && company.debt_to_equity !== undefined 
+                            ? formatDecimal(company.debt_to_equity, 2) 
+                            : '<span class="text-slate-400">N/A</span>';
+                        const growthHtml = formatGrowth(company.sales_growth_3y);
+                        const companyUrl = `/company/${encodeURIComponent(company.symbol || '')}/`;
+
+                        tr.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2.5 py-1 inline-flex font-mono text-xs font-bold rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+                                    ${symbol}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-900 dark:text-slate-100">
+                                ${companyName}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-xs text-slate-600 dark:text-slate-400">
+                                ${sectorName}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                ${healthBadge}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right font-medium text-slate-800 dark:text-slate-200">
+                                ${opmText}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right font-medium text-slate-800 dark:text-slate-200">
+                                ${deText}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right font-semibold">
+                                ${growthHtml}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                <a href="${companyUrl}" class="text-blue-600 dark:text-blue-400 hover:underline font-semibold transition-colors">
+                                    View &rarr;
+                                </a>
+                            </td>
+                        `;
+                        screenerResults.appendChild(tr);
+                    });
+                } catch (error) {
+                    console.error('Error fetching screener results:', error);
+                    if (resultsCount) resultsCount.textContent = 'Error querying companies';
+                    screenerResults.innerHTML = `
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                            <td colspan="8" class="px-6 py-12 text-center text-sm text-rose-500 dark:text-rose-400">
+                                An error occurred while evaluating screener criteria. Please retry.
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+
+            screenerForm.addEventListener('submit', fetchScreenerResults);
+
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    screenerForm.reset();
+                    fetchScreenerResults();
+                });
+            }
+
+            // Immediately populate screener with all companies on page load
+            fetchScreenerResults();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initScreener);
+        } else {
+            initScreener();
+        }
+    })();
+</script>
 {% endblock %}
