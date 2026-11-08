@@ -31,9 +31,9 @@ env_path = BASE_DIR.parent / '.env'
 SECRET_KEY = 'django-insecure-dxna1z00zas(kph3)^boqgqn!^bpw3!mr8-qwuf^1pdd$+7npm'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(','
 
 
 # Application definition
