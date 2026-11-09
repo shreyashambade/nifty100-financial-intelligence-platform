@@ -71,4 +71,4 @@ To run this project locally on your machine:
    *Access the app at `http://127.0.0.1:8000/`*
 
 ---
-*Designed and built by [Your Name/Shreyash Ambade]*
+*Designed and built by Shreyash Ambade*
