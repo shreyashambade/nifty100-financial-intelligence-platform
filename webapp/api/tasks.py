@@ -281,3 +281,103 @@ def trigger_webhook_events(event_type, symbol, data_payload=None):
         ev = dispatch_webhook_event(sub, payload)
         events.append(ev)
     return events
+
+
+# ============================================================================
+# Scheduled Data Science, ML & ETL Tasks (Migrated from task.py)
+# ============================================================================
+
+@shared_task(name='api.tasks.run_etl_pipeline')
+def run_etl_pipeline():
+    """
+    PRD Schedule: Daily at 1:00 AM
+    Executes ETL cleaning and warehouse loading pipeline scripts.
+    """
+    import subprocess
+    import sys
+    import os
+    from django.conf import settings
+
+    logger.info("Triggering scheduled ETL Pipeline...")
+    base_dir = getattr(settings, 'BASE_DIR', None)
+    candidates = []
+    if base_dir:
+        candidates.append(os.path.join(str(base_dir), '..', 'etl'))
+        candidates.append(os.path.join(str(base_dir), 'etl'))
+    candidates.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'etl')))
+    candidates.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'etl')))
+
+    etl_dir = None
+    for p in candidates:
+        if os.path.isdir(p):
+            etl_dir = p
+            break
+
+    if not etl_dir:
+        logger.error("ETL directory not found.")
+        return "ETL Pipeline Failed: Directory not found"
+
+    # Execute clean and warehouse load scripts
+    scripts = [
+        "01_clean_and_transform.py",
+        "02_load_to_warehouse.py"
+    ]
+
+    results = []
+    for script_name in scripts:
+        script_path = os.path.join(etl_dir, script_name)
+        if os.path.exists(script_path):
+            try:
+                logger.info(f"Executing ETL step: {script_name}...")
+                proc = subprocess.run(
+                    [sys.executable, script_path],
+                    cwd=etl_dir,
+                    capture_output=True,
+                    text=True,
+                    timeout=300
+                )
+                if proc.returncode == 0:
+                    results.append(f"{script_name}: SUCCESS")
+                else:
+                    logger.warning(f"ETL script {script_name} exited with code {proc.returncode}: {proc.stderr[:300]}")
+                    results.append(f"{script_name}: RETURN_CODE_{proc.returncode}")
+            except Exception as e:
+                logger.warning(f"Exception executing {script_name}: {e}")
+                results.append(f"{script_name}: ERROR_{e}")
+        else:
+            logger.warning(f"ETL script not found: {script_path}")
+            results.append(f"{script_name}: NOT_FOUND")
+
+    summary = f"ETL Pipeline Executed: {', '.join(results)}"
+    logger.info(summary)
+    return summary
+
+
+@shared_task(name='api.tasks.score_all_companies')
+def score_all_companies():
+    """
+    PRD Schedule: Daily at 2:00 AM
+    Recalculates dynamic ML financial health scores (0-100) for all 100 companies
+    using scikit-learn StandardScaler across multi-dimensional fundamental factors.
+    Updates the FactMlScores table and fires webhooks for significant score updates.
+    """
+    from .ml_scoring import calculate_company_health_scores
+    logger.info("Executing Celery task: score_all_companies...")
+    result = calculate_company_health_scores(dry_run=False)
+    logger.info(f"score_all_companies completed: {result}")
+    return f"Company scores updated: {result.get('scored_count', 0)} companies scored"
+
+
+@shared_task(name='api.tasks.detect_anomalies')
+def detect_anomalies():
+    """
+    PRD Schedule: Weekly on Sunday
+    Z-score and Isolation Forest statistical anomaly detection across all key
+    financial metrics (spikes in debt, sudden revenue drops, margin swings).
+    Flags metrics outside 3 standard deviations and logs them to the database.
+    """
+    from .ml_scoring import detect_financial_anomalies
+    logger.info("Executing Celery task: detect_anomalies...")
+    result = detect_financial_anomalies(threshold_sigma=3.0, dry_run=False)
+    logger.info(f"detect_anomalies completed: {result}")
+    return f"Anomalies detected and logged: {result.get('anomalies_detected', 0)} flagged"

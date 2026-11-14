@@ -19,6 +19,7 @@ from api.views import (
     compare_api, company_search_api, export_companies_csv,
     AdminInsightsView, SectorDetailView,
 )
+from api.cron_views import RunScheduledTasksView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,6 +31,7 @@ urlpatterns = [
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
     # 1. Custom API Endpoints (Must go BEFORE the router)
+    path('api/internal/run-ml-tasks/', RunScheduledTasksView.as_view(), name='api_internal_run_ml_tasks'),
     path('api/v1/companies/search/', company_search_api, name='company_search_api'),
     path('api/v1/companies/export/', export_companies_csv, name='api_export_companies_csv'),
     path('api/v1/screener/results/', screener_api, name='screener_api'),

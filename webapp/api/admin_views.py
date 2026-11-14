@@ -173,3 +173,6 @@ class AdminInsightsView(View):
 # Function-based alias for compatibility with functional URL configs
 admin_insights_view = AdminInsightsView.as_view()
 
+# Internal Scheduled Tasks API View
+from .cron_views import RunScheduledTasksView
+

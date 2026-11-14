@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ChannelPartner, APIUsageLog, WebhookSubscription, WebhookEvent
+from .models import ChannelPartner, APIUsageLog, WebhookSubscription, WebhookEvent, FactAnomalyFlag
 
 @admin.register(ChannelPartner)
 class ChannelPartnerAdmin(admin.ModelAdmin):
@@ -27,3 +27,11 @@ class WebhookEventAdmin(admin.ModelAdmin):
     search_fields = ('subscription__target_url', 'subscription__partner__name', 'last_error')
     list_filter = ('status', 'subscription__event_type', 'created_at')
     readonly_fields = ('subscription', 'payload', 'status', 'retry_count', 'status_code', 'response_body', 'last_error', 'created_at', 'delivered_at')
+
+
+@admin.register(FactAnomalyFlag)
+class FactAnomalyFlagAdmin(admin.ModelAdmin):
+    list_display = ('symbol', 'year_label', 'metric_name', 'metric_value', 'z_score', 'severity', 'is_multivariate_anomaly', 'is_reviewed', 'flagged_at')
+    search_fields = ('symbol__symbol', 'year_label', 'metric_name')
+    list_filter = ('severity', 'is_reviewed', 'is_multivariate_anomaly', 'metric_name')
+    readonly_fields = ('flagged_at',)

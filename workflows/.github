@@ -1,0 +1,17 @@
+name: NiftyIQ Nightly ML Pipeline
+
+on:
+  schedule:
+    # Runs at 2:00 AM IST (which is 20:30 UTC the previous day) every day
+    - cron: '30 20 * * *'
+  workflow_dispatch: # Allows you to click a "Run" button manually in GitHub!
+
+jobs:
+  run-ml-scoring:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger NiftyIQ Machine Learning Engine
+        run: |
+          curl -X POST https://niftyiq.onrender.com/api/internal/run-ml-tasks/ \
+          -H "X-Cron-Secret: ${{ secrets.CRON_SECRET_KEY }}" \
+          -H "Content-Type: application/json"

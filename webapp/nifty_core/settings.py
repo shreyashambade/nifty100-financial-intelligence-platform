@@ -30,6 +30,9 @@ env_path = BASE_DIR.parent / '.env'
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-dxna1z00zas(kph3)^boqgqn!^bpw3!mr8-qwuf^1pdd$+7npm'
 
+# Internal Scheduled Tasks / Cron Secret Key
+CRON_SECRET_KEY = os.getenv('CRON_SECRET_KEY', 'dev-secret-token-123')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 

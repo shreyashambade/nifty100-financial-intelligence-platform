@@ -1536,6 +1536,57 @@ class TierBasedRateLimitingTests(TestCase):
         self.assertEqual(quota['day'], "UNLIMITED")
 
 
+class RunScheduledTasksViewTests(TestCase):
+    """
+    Tests for secure internal API endpoint triggering ML tasks synchronously.
+    """
+    def setUp(self):
+        self.client = APIClient()
+        self.url = '/api/internal/run-ml-tasks/'
+        self.url_v1 = '/api/v1/internal/run-ml-tasks/'
+        self.secret = getattr(settings, 'CRON_SECRET_KEY', 'dev-secret-token-123')
+
+    def test_missing_secret_returns_403(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("Forbidden", response.data.get("detail", ""))
+
+    def test_invalid_secret_returns_403(self):
+        response = self.client.post(self.url, HTTP_X_CRON_SECRET='invalid-secret-key')
+        self.assertEqual(response.status_code, 403)
+
+        response_auth = self.client.post(self.url, HTTP_AUTHORIZATION='Bearer invalid-secret-key')
+        self.assertEqual(response_auth.status_code, 403)
+
+    @mock.patch('api.cron_views.detect_financial_anomalies')
+    @mock.patch('api.cron_views.calculate_company_health_scores')
+    def test_valid_x_cron_secret_executes_tasks_synchronously(self, mock_scores, mock_anomalies):
+        mock_scores.return_value = {'status': 'success', 'scored_count': 100}
+        mock_anomalies.return_value = {'status': 'success', 'anomalies_detected': 5}
+
+        response = self.client.post(self.url, HTTP_X_CRON_SECRET=self.secret)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('status'), 'success')
+        self.assertIn('Scheduled ML tasks executed successfully', response.data.get('message', ''))
+        mock_scores.assert_called_once_with(dry_run=False)
+        mock_anomalies.assert_called_once_with(threshold_sigma=3.0, dry_run=False)
+
+    @mock.patch('api.cron_views.detect_financial_anomalies')
+    @mock.patch('api.cron_views.calculate_company_health_scores')
+    def test_valid_authorization_bearer_header(self, mock_scores, mock_anomalies):
+        mock_scores.return_value = {'status': 'success', 'scored_count': 100}
+        mock_anomalies.return_value = {'status': 'success', 'anomalies_detected': 5}
+
+        response = self.client.post(self.url, HTTP_AUTHORIZATION=f'Bearer {self.secret}')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('status'), 'success')
+
+        # Also verify resolution via /api/v1/internal/run-ml-tasks/
+        response_v1 = self.client.post(self.url_v1, HTTP_AUTHORIZATION=f'Bearer {self.secret}')
+        self.assertEqual(response_v1.status_code, 200)
+
+
+
 
 
 

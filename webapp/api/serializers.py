@@ -6,6 +6,7 @@ from .models import (
     FactAnalysis, 
     FactBalanceSheet, 
     FactCashFlow,
+    FactProsCons,
     ChannelPartner,
     WebhookSubscription,
 )
@@ -90,6 +91,14 @@ class FactMlScoresSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FactMlScores
+        fields = '__all__'
+
+
+class FactProsConsSerializer(serializers.ModelSerializer):
+    confidence = serializers.DecimalField(max_digits=15, decimal_places=4, required=False, allow_null=True)
+
+    class Meta:
+        model = FactProsCons
         fields = '__all__'
 
 

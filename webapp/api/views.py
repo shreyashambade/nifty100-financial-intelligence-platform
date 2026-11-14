@@ -1265,6 +1265,45 @@ def export_companies_csv(request):
     return response
 
 
+_ANNUAL_REPORTS_CACHE = None
+
+def get_company_annual_reports(symbol):
+    """
+    Load multi-year BSE annual report PDF links for a company sorted by year descending.
+    Reads from clean_documents.json extracted from documents.xlsx.
+    """
+    global _ANNUAL_REPORTS_CACHE
+    if _ANNUAL_REPORTS_CACHE is None:
+        try:
+            import json
+            import os
+            from django.conf import settings
+            base_dir = getattr(settings, 'BASE_DIR', None)
+            candidates = []
+            if base_dir:
+                candidates.extend([
+                    os.path.join(str(base_dir), '..', 'data', 'clean', 'clean_documents.json'),
+                    os.path.join(str(base_dir), 'data', 'clean', 'clean_documents.json'),
+                ])
+            candidates.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'clean', 'clean_documents.json')))
+            candidates.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'clean', 'clean_documents.json')))
+
+            for p in candidates:
+                if os.path.exists(p):
+                    with open(p, 'r', encoding='utf-8') as f:
+                        _ANNUAL_REPORTS_CACHE = json.load(f)
+                    break
+            if _ANNUAL_REPORTS_CACHE is None:
+                _ANNUAL_REPORTS_CACHE = {}
+        except Exception as e:
+            logger.warning("Failed to load annual reports cache: %s", e)
+            _ANNUAL_REPORTS_CACHE = {}
+
+    sym_key = (symbol or '').strip().upper()
+    reports = _ANNUAL_REPORTS_CACHE.get(sym_key, [])
+    return sorted(reports, key=lambda x: str(x.get('year', '')), reverse=True)
+
+
 def company_detail(request, symbol):
     # Fetch the specific company by its symbol, or return a 404 Not Found page
     sym = (symbol or '').strip()
@@ -1356,6 +1395,8 @@ def company_detail(request, symbol):
         logger.warning("Error fetching FactCashFlow for %s: %s", sym_str, e)
         latest_cf = None
 
+    annual_reports = get_company_annual_reports(sym_str)
+
     context = {
         'company': company,
         'symbol': sym_str,
@@ -1367,6 +1408,7 @@ def company_detail(request, symbol):
         'latest_pl': latest_pl,
         'latest_bs': latest_bs,
         'latest_cf': latest_cf,
+        'annual_reports': annual_reports,
     }
     return render(request, 'company_detail.html', context)
 

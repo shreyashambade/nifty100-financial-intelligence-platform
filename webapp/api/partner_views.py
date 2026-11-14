@@ -25,6 +25,7 @@ from .models import (
     FactBalanceSheet,
     FactProfitLoss,
     FactCashFlow,
+    FactProsCons,
     ChannelPartner,
     WebhookSubscription,
 )
@@ -32,6 +33,12 @@ from .serializers import (
     PartnerCompanySerializer,
     WebhookSubscriptionSerializer,
     ChannelPartnerKeySerializer,
+    FactProfitLossSerializer,
+    FactBalanceSheetSerializer,
+    FactCashFlowSerializer,
+    FactMlScoresSerializer,
+    FactAnalysisSerializer,
+    FactProsConsSerializer,
 )
 from .authentication import PartnerHMACAuthentication
 from .permissions import IsPartnerHMACAuthenticated
@@ -241,6 +248,86 @@ class PartnerCompanyViewSet(PartnerThrottleMixin, viewsets.ReadOnlyModelViewSet)
         obj = get_object_or_404(DimCompany, symbol__symbol=symbol)
         self.check_object_permissions(self.request, obj)
         return obj
+
+    @extend_schema(
+        summary="Retrieve Full Historical Fundamentals & Intelligence",
+        description="Returns a complete nested data dump containing company profile, multi-year P&L, balance sheet, cash flow, ML health scores, and pros/cons.",
+        parameters=[
+            *HMAC_AUTH_HEADER_PARAMETERS,
+            OpenApiParameter('symbol', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='Company ticker symbol (e.g. RELIANCE, TCS, INFY)'),
+        ],
+        responses={
+            200: OpenApiResponse(description="Full nested company intelligence dataset."),
+            401: OpenApiResponse(description="Authentication failed."),
+            404: OpenApiResponse(description="Company ticker symbol not found."),
+        },
+        tags=["Channel Partner: Companies"]
+    )
+    @action(detail=True, methods=['get'], url_path='full')
+    def full(self, request, *args, **kwargs):
+        company = self.get_object()
+        sym_obj = getattr(company, 'symbol', None)
+        sym_str = str(getattr(company, 'symbol_id', None) or (sym_obj.symbol if sym_obj else ''))
+
+        # Query related historical datasets safely
+        try:
+            pl_qs = FactProfitLoss.objects.filter(symbol=sym_obj).order_by('sort_order', 'year_id') if sym_obj else FactProfitLoss.objects.none()
+            if not pl_qs.exists() and sym_str:
+                pl_qs = FactProfitLoss.objects.filter(symbol__symbol__iexact=sym_str).order_by('sort_order', 'year_id')
+        except Exception as e:
+            logger.warning("FactProfitLoss query failed in /full/ for %s: %s", sym_str, e)
+            pl_qs = FactProfitLoss.objects.none()
+
+        try:
+            bs_qs = FactBalanceSheet.objects.filter(symbol=sym_obj).order_by('sort_order', 'year_id') if sym_obj else FactBalanceSheet.objects.none()
+            if not bs_qs.exists() and sym_str:
+                bs_qs = FactBalanceSheet.objects.filter(symbol__symbol__iexact=sym_str).order_by('sort_order', 'year_id')
+        except Exception as e:
+            logger.warning("FactBalanceSheet query failed in /full/ for %s: %s", sym_str, e)
+            bs_qs = FactBalanceSheet.objects.none()
+
+        try:
+            cf_qs = FactCashFlow.objects.filter(symbol=sym_obj).order_by('sort_order', 'year_id') if sym_obj else FactCashFlow.objects.none()
+            if not cf_qs.exists() and sym_str:
+                cf_qs = FactCashFlow.objects.filter(symbol__symbol__iexact=sym_str).order_by('sort_order', 'year_id')
+        except Exception as e:
+            logger.warning("FactCashFlow query failed in /full/ for %s: %s", sym_str, e)
+            cf_qs = FactCashFlow.objects.none()
+
+        try:
+            scores_qs = FactMlScores.objects.filter(symbol=sym_obj).order_by('-computed_at') if sym_obj else FactMlScores.objects.none()
+            if not scores_qs.exists() and sym_str:
+                scores_qs = FactMlScores.objects.filter(symbol__symbol__iexact=sym_str).order_by('-computed_at')
+        except Exception as e:
+            logger.warning("FactMlScores query failed in /full/ for %s: %s", sym_str, e)
+            scores_qs = FactMlScores.objects.none()
+
+        try:
+            analysis_qs = FactAnalysis.objects.filter(symbol=sym_obj).order_by('-period_label') if sym_obj else FactAnalysis.objects.none()
+            if not analysis_qs.exists() and sym_str:
+                analysis_qs = FactAnalysis.objects.filter(symbol__symbol__iexact=sym_str).order_by('-period_label')
+        except Exception as e:
+            logger.warning("FactAnalysis query failed in /full/ for %s: %s", sym_str, e)
+            analysis_qs = FactAnalysis.objects.none()
+
+        try:
+            pros_cons_qs = FactProsCons.objects.filter(symbol=sym_obj) if sym_obj else FactProsCons.objects.none()
+            if not pros_cons_qs.exists() and sym_str:
+                pros_cons_qs = FactProsCons.objects.filter(symbol__symbol__iexact=sym_str)
+        except Exception as e:
+            logger.warning("FactProsCons query failed in /full/ for %s: %s", sym_str, e)
+            pros_cons_qs = FactProsCons.objects.none()
+
+        return Response({
+            'symbol': sym_str,
+            'company': PartnerCompanySerializer(company, context=self.get_serializer_context()).data,
+            'profit_and_loss': FactProfitLossSerializer(pl_qs, many=True).data,
+            'balance_sheet': FactBalanceSheetSerializer(bs_qs, many=True).data,
+            'cash_flow': FactCashFlowSerializer(cf_qs, many=True).data,
+            'ml_scores': FactMlScoresSerializer(scores_qs, many=True).data,
+            'analysis': FactAnalysisSerializer(analysis_qs, many=True).data,
+            'pros_cons': FactProsConsSerializer(pros_cons_qs, many=True).data,
+        })
 
     @extend_schema(
         summary="Bulk Financials Dump",
@@ -514,6 +601,20 @@ class PartnerWebhookViewSet(PartnerThrottleMixin, viewsets.ModelViewSet):
             401: OpenApiResponse(description="Authentication failed."),
         },
         tags=["Channel Partner: Keys"]
+    ),
+    destroy=extend_schema(
+        summary="Revoke Partner API Key",
+        description="Revokes and deactivates the commercial partner's API key. Filtered by partner=request.user.partner_profile.",
+        parameters=[
+            *HMAC_AUTH_HEADER_PARAMETERS,
+            OpenApiParameter('id', type=OpenApiTypes.STR, location=OpenApiParameter.PATH, description='API Key ID / UUID to revoke'),
+        ],
+        responses={
+            204: OpenApiResponse(description="API key successfully revoked."),
+            401: OpenApiResponse(description="Authentication failed."),
+            404: OpenApiResponse(description="API key not found."),
+        },
+        tags=["Channel Partner: Keys"]
     )
 )
 class PartnerKeyViewSet(PartnerThrottleMixin, viewsets.ViewSet):
@@ -551,3 +652,28 @@ class PartnerKeyViewSet(PartnerThrottleMixin, viewsets.ViewSet):
             'name': partner.name,
             'email': partner.email,
         }, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, pk=None):
+        # Allow a partner to revoke/delete their own API keys via DELETE /api/partner/v1/keys/{key_id}/
+        # Filter by partner=request.user.partner_profile (with robust fallbacks)
+        partner = getattr(getattr(request, 'user', None), 'partner_profile', None)
+        if partner is None:
+            partner = getattr(request, 'partner', None) or getattr(request, 'user', None)
+
+        if not partner:
+            return Response({'error': 'Partner not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        key_id = str(pk).strip() if pk else ''
+        partner_keys = [
+            str(getattr(partner, 'api_key', '')),
+            str(getattr(partner, 'key_id', '')),
+            str(getattr(partner, 'pk', '')),
+        ]
+        if key_id and key_id not in partner_keys:
+            return Response({'detail': 'API key not found for this partner.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Revoke the partner's API key
+        partner.is_active = False
+        partner.save(update_fields=['is_active'])
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
